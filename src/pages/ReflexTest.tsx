@@ -3,7 +3,6 @@ import { Layout } from '@/components/Layout';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { cn } from '@/lib/utils';
 import type { PerformanceHistory, ReflexResult } from '@/types/history';
-import { Button } from '@/components/ui/button';
 
 type GameState = 'idle' | 'waiting' | 'ready' | 'result' | 'finished';
 
@@ -20,6 +19,7 @@ export default function ReflexTest() {
   const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
   const [testCount, setTestCount] = useState(0);
   const [testResults, setTestResults] = useState<number[]>([]);
+  const [averageResult, setAverageResult] = useState(0);
   
   const startTimeRef = useRef<number>(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -48,6 +48,7 @@ export default function ReflexTest() {
     setReactionTime(0);
     setTestCount(0);
     setTestResults([]);
+    setAverageResult(0);
   }, []);
 
   const handleClick = useCallback(() => {
@@ -80,10 +81,10 @@ export default function ReflexTest() {
 
   useEffect(() => {
     if (testCount === TEST_COUNT) {
-      setGameState('finished');
       const validResults = testResults.filter(r => r > 0);
       if (validResults.length > 0) {
         const average = Math.round(validResults.reduce((a, b) => a + b, 0) / validResults.length);
+        setAverageResult(average);
         const newResult: ReflexResult = {
           id: crypto.randomUUID(),
           time: average,
@@ -94,6 +95,7 @@ export default function ReflexTest() {
           reflex: [newResult, ...prev.reflex].slice(0, 10),
         }));
       }
+      setGameState('finished');
     }
   }, [testCount, testResults, setHistory]);
 
@@ -102,7 +104,7 @@ export default function ReflexTest() {
   }, [clearTimeout]);
 
   const getStateStyles = () => {
-    if (gameState === 'finished') return 'bg-accent cursor-pointer';
+    if (gameState === 'finished') return 'bg-primary cursor-pointer';
     
     switch (gameState) {
       case 'idle':
@@ -118,9 +120,7 @@ export default function ReflexTest() {
 
   const getStateText = () => {
      if (gameState === 'finished') {
-      const validResults = testResults.filter(r => r > 0);
-      const average = validResults.length > 0 ? Math.round(validResults.reduce((a, b) => a + b, 0) / validResults.length) : 0;
-      return { main: `${average} ms`, sub: 'Cliquez pour recommencer' };
+      return { main: `${averageResult} ms`, sub: 'Cliquez pour recommencer' };
     }
     switch (gameState) {
       case 'idle':
@@ -163,7 +163,7 @@ export default function ReflexTest() {
                     gameState === 'waiting' ? "text-warning-foreground" : "",
                     gameState === 'ready' ? "text-success-foreground" : "",
                     reactionTime === -1 ? "text-destructive-foreground" : "",
-                    (gameState === 'idle' || gameState === 'result' || gameState === 'finished') ? "text-accent-foreground" : ""
+                    (gameState === 'idle' || gameState === 'result') ? "text-accent-foreground" : "text-primary-foreground"
                   )}
                 >
                   {stateText.main}
@@ -175,26 +175,13 @@ export default function ReflexTest() {
                       gameState === 'waiting' ? "text-warning-foreground" : "",
                       gameState === 'ready' ? "text-success-foreground" : "",
                       reactionTime === -1 ? "text-destructive-foreground" : "",
-                      (gameState === 'idle' || gameState === 'result' || gameState === 'finished') ? "text-accent-foreground" : ""
+                      (gameState === 'idle' || gameState === 'result') ? "text-accent-foreground" : "text-primary-foreground"
                     )}
                   >
                     {stateText.sub}
                   </span>
                 )}
               </div>
-
-              {testResults.length > 0 && (
-                <div className="mt-4">
-                  <h3 className="text-lg font-semibold mb-2">Résultats:</h3>
-                  <ol className="list-decimal list-inside">
-                    {testResults.map((result, index) => (
-                      <li key={index}>
-                        Test {index + 1}: {result > 0 ? `${result} ms` : 'Trop tôt'}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              )}
             </div>
           </div>
         </div>

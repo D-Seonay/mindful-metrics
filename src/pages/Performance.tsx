@@ -13,7 +13,7 @@ const initialHistory: PerformanceHistory = {
 };
 
 export default function Performance() {
-  const [history] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
+  const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
 
   const bestWpm = history.typing.length > 0 ? Math.max(...history.typing.map(r => r.wpm)) : 0;
   const averageWpm = history.typing.length > 0
@@ -48,12 +48,19 @@ export default function Performance() {
     URL.revokeObjectURL(url);
   };
 
+  const handleClearHistory = () => {
+    setHistory(initialHistory);
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">My Performance</h1>
-          <Button onClick={handleSave}>Save</Button>
+          <div className="flex gap-2">
+            <Button onClick={handleSave}>Save</Button>
+            <Button variant="destructive" onClick={handleClearHistory}>Clear History</Button>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
