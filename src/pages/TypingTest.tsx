@@ -137,30 +137,34 @@ export default function TypingTest() {
   const finishGame = useCallback(() => {
     stopTimer();
     setGameState('finished');
-    
-    const finalStats = {
-      wpm: elapsedTime > 0 ? Math.round((userInput.length / 5) / (elapsedTime / 60)) : 0,
-      accuracy: (() => {
-        let correct = 0;
-        for (let i = 0; i < userInput.length; i++) {
-          if (userInput[i] === text[i]) correct++;
-        }
-        return Math.round((correct / userInput.length) * 100);
-      })(),
-    };
-    
-    const newResult: TypingResult = {
-      id: crypto.randomUUID(),
-      wpm: finalStats.wpm,
-      accuracy: finalStats.accuracy,
-      date: new Date().toISOString(),
-    };
-    
-    setHistory(prev => ({
-      ...prev,
-      typing: [newResult, ...prev.typing].slice(0, 10),
-    }));
-  }, [stopTimer, elapsedTime, userInput, text, setHistory]);
+  }, [stopTimer]);
+
+  useEffect(() => {
+    if (gameState === 'finished') {
+      const finalStats = {
+        wpm: elapsedTime > 0 ? Math.round((userInput.length / 5) / (elapsedTime / 60)) : 0,
+        accuracy: (() => {
+          let correct = 0;
+          for (let i = 0; i < userInput.length; i++) {
+            if (userInput[i] === text[i]) correct++;
+          }
+          return Math.round((correct / userInput.length) * 100);
+        })(),
+      };
+      
+      const newResult: TypingResult = {
+        id: crypto.randomUUID(),
+        wpm: finalStats.wpm,
+        accuracy: finalStats.accuracy,
+        date: new Date().toISOString(),
+      };
+      
+      setHistory(prev => ({
+        ...prev,
+        typing: [newResult, ...(prev.typing || [])].slice(0, 10),
+      }));
+    }
+  }, [gameState, elapsedTime, userInput, text, setHistory]);
 
   useEffect(() => {
     if (gameState === 'typing') {

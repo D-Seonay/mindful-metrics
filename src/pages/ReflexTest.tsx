@@ -79,25 +79,29 @@ export default function ReflexTest() {
     }
   }, [gameState, startWaiting, clearTimeout, testCount, resetGame]);
 
+  const saveHistory = useCallback((average: number) => {
+    const newResult: ReflexResult = {
+      id: crypto.randomUUID(),
+      time: average,
+      date: new Date().toISOString(),
+    };
+    setHistory(prev => ({
+      ...prev,
+      reflex: [newResult, ...(prev.reflex || [])].slice(0, 10),
+    }));
+  }, [setHistory]);
+
   useEffect(() => {
     if (testCount === TEST_COUNT) {
       const validResults = testResults.filter(r => r > 0);
       if (validResults.length > 0) {
         const average = Math.round(validResults.reduce((a, b) => a + b, 0) / validResults.length);
         setAverageResult(average);
-        const newResult: ReflexResult = {
-          id: crypto.randomUUID(),
-          time: average,
-          date: new Date().toISOString(),
-        };
-        setHistory(prev => ({
-          ...prev,
-          reflex: [newResult, ...prev.reflex].slice(0, 10),
-        }));
+        saveHistory(average);
       }
       setGameState('finished');
     }
-  }, [testCount, testResults, setHistory]);
+  }, [testCount, testResults, saveHistory]);
 
   useEffect(() => {
     return () => clearTimeout();
