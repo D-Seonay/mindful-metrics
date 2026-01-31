@@ -9,14 +9,51 @@ import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type GameState = 'idle' | 'typing' | 'finished';
+type Language = 'fr' | 'en';
 
 const initialHistory: TypingHistory = {
   results: [],
   bestWpm: null,
 };
 
+const translations = {
+  fr: {
+    title: "Test de Vitesse de Frappe",
+    subtitle: "Tapez le texte ci-dessous le plus rapidement possible",
+    time: "Temps",
+    wpm: "WPM",
+    accuracy: "Précision",
+    restart: "Recommencer",
+    resultsTitle: "mots par minute",
+    resultsAccuracy: "précision",
+    resultsTime: "temps",
+    restartHint: "Appuyez sur <kbd class=\"px-2 py-1 rounded bg-secondary font-mono text-sm\">Tab</kbd> pour recommencer",
+    startTyping: "Commencez à taper pour lancer le chronomètre",
+    historyTitle: "Historique",
+    historyWpm: "WPM",
+    historyAccuracy: "Précision",
+  },
+  en: {
+    title: "Typing Speed Test",
+    subtitle: "Type the text below as fast as possible",
+    time: "Time",
+    wpm: "WPM",
+    accuracy: "Accuracy",
+    restart: "Restart",
+    resultsTitle: "words per minute",
+    resultsAccuracy: "accuracy",
+    resultsTime: "time",
+    restartHint: "Press <kbd class=\"px-2 py-1 rounded bg-secondary font-mono text-sm\">Tab</kbd> to restart",
+    startTyping: "Start typing to begin the timer",
+    historyTitle: "History",
+    historyWpm: "WPM",
+    historyAccuracy: "Accuracy",
+  },
+};
+
 export default function TypingTest() {
-  const [text, setText] = useState(() => getRandomText());
+  const [language, setLanguage] = useState<Language>('fr');
+  const [text, setText] = useState(() => getRandomText(language));
   const [userInput, setUserInput] = useState('');
   const [gameState, setGameState] = useState<GameState>('idle');
   const [startTime, setStartTime] = useState<number>(0);
@@ -57,15 +94,20 @@ export default function TypingTest() {
     }
   }, []);
 
-  const resetGame = useCallback(() => {
+  const resetGame = useCallback((lang: Language = language) => {
     stopTimer();
-    setText(getRandomText());
+    setText(getRandomText(lang));
     setUserInput('');
     setGameState('idle');
     setStartTime(0);
     setElapsedTime(0);
     setTimeout(() => inputRef.current?.focus(), 50);
-  }, [stopTimer]);
+  }, [stopTimer, language]);
+
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+    resetGame(lang);
+  };
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -141,15 +183,19 @@ export default function TypingTest() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const t = translations[language];
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-5xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold mb-2">Test de Vitesse de Frappe</h1>
-            <p className="text-muted-foreground">
-              Tapez le texte ci-dessous le plus rapidement possible
-            </p>
+            <h1 className="text-2xl font-bold mb-2">{t.title}</h1>
+            <p className="text-muted-foreground">{t.subtitle}</p>
+            <div className="flex gap-2 mt-4">
+              <Button onClick={() => handleLanguageChange('fr')} variant={language === 'fr' ? 'secondary' : 'ghost'}>Français</Button>
+              <Button onClick={() => handleLanguageChange('en')} variant={language === 'en' ? 'secondary' : 'ghost'}>English</Button>
+            </div>
           </div>
 
           <div className="grid lg:grid-cols-4 gap-6">
@@ -157,25 +203,25 @@ export default function TypingTest() {
               {/* Stats bar */}
               <div className="flex items-center gap-6 mb-6 text-sm">
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">Temps</span>
+                  <span className="text-muted-foreground">{t.time}</span>
                   <span className="font-semibold tabular-nums">{formatTime(elapsedTime)}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">WPM</span>
+                  <span className="text-muted-foreground">{t.wpm}</span>
                   <span className="font-semibold tabular-nums">{stats.wpm}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">Précision</span>
+                  <span className="text-muted-foreground">{t.accuracy}</span>
                   <span className="font-semibold tabular-nums">{stats.accuracy}%</span>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={resetGame}
+                  onClick={() => resetGame()}
                   className="ml-auto h-8 px-3"
                 >
                   <RotateCcw className="h-3.5 w-3.5 mr-2" />
-                  Recommencer
+                  {t.restart}
                 </Button>
               </div>
 
@@ -186,21 +232,19 @@ export default function TypingTest() {
                     <div className="text-7xl font-extrabold mb-2 animate-pulse-subtle">
                       {stats.wpm}
                     </div>
-                    <div className="text-xl text-muted-foreground">mots par minute</div>
+                    <div className="text-xl text-muted-foreground">{t.resultsTitle}</div>
                   </div>
                   <div className="flex items-center justify-center gap-8 mb-8">
                     <div>
                       <div className="text-3xl font-bold">{stats.accuracy}%</div>
-                      <div className="text-sm text-muted-foreground">précision</div>
+                      <div className="text-sm text-muted-foreground">{t.resultsAccuracy}</div>
                     </div>
                     <div>
                       <div className="text-3xl font-bold">{formatTime(elapsedTime)}</div>
-                      <div className="text-sm text-muted-foreground">temps</div>
+                      <div className="text-sm text-muted-foreground">{t.resultsTime}</div>
                     </div>
                   </div>
-                  <p className="text-muted-foreground">
-                    Appuyez sur <kbd className="px-2 py-1 rounded bg-secondary font-mono text-sm">Tab</kbd> pour recommencer
-                  </p>
+                  <p className="text-muted-foreground" dangerouslySetInnerHTML={{ __html: t.restartHint }}></p>
                 </div>
               ) : (
                 /* Typing area */
@@ -253,14 +297,14 @@ export default function TypingTest() {
 
               {gameState === 'idle' && (
                 <p className="text-center text-sm text-muted-foreground mt-4">
-                  Commencez à taper pour lancer le chronomètre
+                  {t.startTyping}
                 </p>
               )}
             </div>
 
             <div className="lg:col-span-1">
               <HistoryPanel
-                title="Historique"
+                title={t.historyTitle}
                 items={history.results.map(r => ({
                   id: r.id,
                   date: r.date,
@@ -268,8 +312,8 @@ export default function TypingTest() {
                   secondaryValue: r.accuracy,
                 }))}
                 bestValue={history.bestWpm}
-                valueLabel="WPM"
-                secondaryLabel="Précision"
+                valueLabel={t.historyWpm}
+                secondaryLabel={t.historyAccuracy}
                 formatValue={(v) => `${v} WPM`}
                 formatSecondary={(v) => `${v}%`}
                 onClear={handleClearHistory}
