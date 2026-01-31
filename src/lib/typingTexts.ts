@@ -36,17 +36,28 @@ export const typingTexts = {
   ],
 };
 
-export function getRandomText(lang: "fr" | "en" = "fr"): string {
+export function getRandomText(
+  lang: "fr" | "en" = "fr",
+  includePunctuation: boolean = true
+): string {
   const langTexts = typingTexts[lang];
-  return langTexts[Math.floor(Math.random() * langTexts.length)];
+  let text = langTexts[Math.floor(Math.random() * langTexts.length)];
+  if (!includePunctuation) {
+    text = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+  }
+  return text;
 }
 
 export function getRandomWords(
   count: number,
-  lang: "fr" | "en" = "fr"
+  lang: "fr" | "en" = "fr",
+  includePunctuation: boolean = true
 ): string {
   const langTexts = typingTexts[lang];
-  const allWords = langTexts.join(" ").split(" ");
+  let allWords = langTexts.join(" ").split(" ");
+  if (!includePunctuation) {
+    allWords = allWords.map(word => word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ""));
+  }
   let result = "";
   for (let i = 0; i < count; i++) {
     result += allWords[Math.floor(Math.random() * allWords.length)] + " ";
