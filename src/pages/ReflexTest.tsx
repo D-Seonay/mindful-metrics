@@ -3,18 +3,23 @@ import { Layout } from '@/components/Layout';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { cn } from '@/lib/utils';
 import type { PerformanceHistory, ReflexResult } from '@/types/history';
+import { Button } from '@/components/ui/button';
 
-type GameState = 'idle' | 'waiting' | 'ready' | 'result' | 'too-early';
+type GameState = 'idle' | 'waiting' | 'ready' | 'result' | 'finished';
 
 const initialHistory: PerformanceHistory = {
   reflex: [],
   typing: [],
 };
 
+const TEST_COUNT = 5;
+
 export default function ReflexTest() {
   const [gameState, setGameState] = useState<GameState>('idle');
   const [reactionTime, setReactionTime] = useState<number>(0);
   const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
+  const [testCount, setTestCount] = useState(0);
+  const [testResults, setTestResults] = useState<number[]>([]);
   
   const startTimeRef = useRef<number>(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -30,7 +35,6 @@ export default function ReflexTest() {
     setGameState('waiting');
     clearTimeout();
     
-    // Random delay between 2-5 seconds
     const delay = 2000 + Math.random() * 3000;
     
     timeoutRef.current = setTimeout(() => {
@@ -38,44 +42,68 @@ export default function ReflexTest() {
       startTimeRef.current = performance.now();
     }, delay);
   }, [clearTimeout]);
+  
+  const resetGame = useCallback(() => {
+    setGameState('idle');
+    setReactionTime(0);
+    setTestCount(0);
+    setTestResults([]);
+  }, []);
 
   const handleClick = useCallback(() => {
     switch (gameState) {
       case 'idle':
       case 'result':
-      case 'too-early':
-        startWaiting();
+        if (testCount < TEST_COUNT) {
+          startWaiting();
+        } else if (gameState === 'result' && testCount === TEST_COUNT) {
+          resetGame();
+        }
         break;
       case 'waiting':
         clearTimeout();
-        setGameState('too-early');
+        setGameState('idle'); // Reset to idle so user can click to start this attempt again
         break;
       case 'ready':
         const endTime = performance.now();
         const time = Math.round(endTime - startTimeRef.current);
         setReactionTime(time);
+        setTestResults(prev => [...prev, time]);
+        setTestCount(prev => prev + 1);
         setGameState('result');
-        
-        // Save to history
+        break;
+      case 'finished':
+        resetGame();
+        break;
+    }
+  }, [gameState, startWaiting, clearTimeout, testCount, resetGame]);
+
+  useEffect(() => {
+    if (testCount === TEST_COUNT) {
+      setGameState('finished');
+      const validResults = testResults.filter(r => r > 0);
+      if (validResults.length > 0) {
+        const average = Math.round(validResults.reduce((a, b) => a + b, 0) / validResults.length);
         const newResult: ReflexResult = {
           id: crypto.randomUUID(),
-          time,
+          time: average,
           date: new Date().toISOString(),
         };
-        
         setHistory(prev => ({
           ...prev,
           reflex: [newResult, ...prev.reflex].slice(0, 10),
         }));
-        break;
+      }
     }
-  }, [gameState, startWaiting, clearTimeout, setHistory]);
+  }, [testCount, testResults, setHistory]);
 
   useEffect(() => {
     return () => clearTimeout();
   }, [clearTimeout]);
 
   const getStateStyles = () => {
+    if (gameState === 'finished') return 'bg-accent cursor-pointer';
+    
     switch (gameState) {
       case 'idle':
         return 'bg-accent cursor-pointer';
@@ -85,23 +113,24 @@ export default function ReflexTest() {
         return 'bg-success cursor-pointer';
       case 'result':
         return 'bg-accent cursor-pointer';
-      case 'too-early':
-        return 'bg-destructive cursor-pointer';
     }
   };
 
   const getStateText = () => {
+     if (gameState === 'finished') {
+      const validResults = testResults.filter(r => r > 0);
+      const average = validResults.length > 0 ? Math.round(validResults.reduce((a, b) => a + b, 0) / validResults.length) : 0;
+      return { main: `${average} ms`, sub: 'Cliquez pour recommencer' };
+    }
     switch (gameState) {
       case 'idle':
-        return { main: 'Cliquez pour commencer', sub: 'Testez vos réflexes' };
+        return { main: 'Cliquez pour commencer', sub: testCount === 0 ? `Faites ${TEST_COUNT} tests pour obtenir une moyenne` : `Test ${testCount + 1}/${TEST_COUNT}`};
       case 'waiting':
-        return { main: 'Attendez le vert...', sub: 'Ne cliquez pas encore' };
+        return { main: 'Attendez le vert...', sub: `Test ${testCount + 1}/${TEST_COUNT}` };
       case 'ready':
-        return { main: 'Cliquez !', sub: '' };
+        return { main: 'Cliquez !', sub: `Test ${testCount + 1}/${TEST_COUNT}` };
       case 'result':
-        return { main: `${reactionTime} ms`, sub: 'Cliquez pour réessayer' };
-      case 'too-early':
-        return { main: 'Trop tôt !', sub: 'Cliquez pour réessayer' };
+        return { main: `${reactionTime} ms`, sub: 'Cliquez pour continuer' };
     }
   };
 
@@ -112,9 +141,9 @@ export default function ReflexTest() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold mb-2">Test de Réflexes</h1>
+            <h1 className="text-2xl font-bold mb-2">Test de Réflexes (Moyenne de 5)</h1>
             <p className="text-muted-foreground">
-              Cliquez dès que l'écran devient vert pour mesurer votre temps de réaction
+              Cliquez dès que l'écran devient vert pour mesurer votre temps de réaction.
             </p>
           </div>
 
@@ -130,11 +159,11 @@ export default function ReflexTest() {
                 <span
                   className={cn(
                     "text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight",
-                    gameState === 'result' && "result-display animate-pulse-subtle",
+                    (gameState === 'result' || gameState === 'finished') && "result-display animate-pulse-subtle",
                     gameState === 'waiting' ? "text-warning-foreground" : "",
                     gameState === 'ready' ? "text-success-foreground" : "",
-                    gameState === 'too-early' ? "text-destructive-foreground" : "",
-                    (gameState === 'idle' || gameState === 'result') ? "text-accent-foreground" : ""
+                    reactionTime === -1 ? "text-destructive-foreground" : "",
+                    (gameState === 'idle' || gameState === 'result' || gameState === 'finished') ? "text-accent-foreground" : ""
                   )}
                 >
                   {stateText.main}
@@ -145,14 +174,27 @@ export default function ReflexTest() {
                       "mt-4 text-lg font-medium opacity-80",
                       gameState === 'waiting' ? "text-warning-foreground" : "",
                       gameState === 'ready' ? "text-success-foreground" : "",
-                      gameState === 'too-early' ? "text-destructive-foreground" : "",
-                      (gameState === 'idle' || gameState === 'result') ? "text-accent-foreground" : ""
+                      reactionTime === -1 ? "text-destructive-foreground" : "",
+                      (gameState === 'idle' || gameState === 'result' || gameState === 'finished') ? "text-accent-foreground" : ""
                     )}
                   >
                     {stateText.sub}
                   </span>
                 )}
               </div>
+
+              {testResults.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="text-lg font-semibold mb-2">Résultats:</h3>
+                  <ol className="list-decimal list-inside">
+                    {testResults.map((result, index) => (
+                      <li key={index}>
+                        Test {index + 1}: {result > 0 ? `${result} ms` : 'Trop tôt'}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
             </div>
           </div>
         </div>
