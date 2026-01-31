@@ -7,8 +7,6 @@ import type { PerformanceHistory, TypingResult } from '@/types/history';
 import { RotateCcw, Timer, Pilcrow } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 
 type GameState = 'idle' | 'typing' | 'finished';
 type Language = 'fr' | 'en';
@@ -227,10 +225,15 @@ export default function TypingTest() {
           </div>
 
           <div className="flex flex-col items-center gap-4 mb-8">
-            <div className="flex items-center space-x-2">
-              <Switch id="punctuation-mode" checked={includePunctuation} onCheckedChange={setIncludePunctuation} />
-              <Label htmlFor="punctuation-mode">{t.punctuation}</Label>
-            </div>
+            <ToggleGroup type="single" value={includePunctuation ? 'on' : 'off'} onValueChange={(value) => setIncludePunctuation(value === 'on')}>
+              <ToggleGroupItem value="on" aria-label="With punctuation">
+                Punctuation
+              </ToggleGroupItem>
+              <ToggleGroupItem value="off" aria-label="No punctuation">
+                No Punctuation
+              </ToggleGroupItem>
+            </ToggleGroup>
+
             <ToggleGroup type="single" value={testMode} onValueChange={(value: TestMode) => value && setTestMode(value)}>
               <ToggleGroupItem value="time" aria-label="Time mode">
                 <Timer className="h-4 w-4 mr-2" />
