@@ -1,14 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Layout } from '@/components/Layout';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { getRandomText } from '@/lib/typingTexts';
+import { getRandomText, getRandomWords } from '@/lib/typingTexts';
 import { cn } from '@/lib/utils';
 import type { PerformanceHistory, TypingResult } from '@/types/history';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Timer, Pilcrow } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 type GameState = 'idle' | 'typing' | 'finished';
 type Language = 'fr' | 'en';
+type TestMode = 'time' | 'words';
 
 const initialHistory: PerformanceHistory = {
   reflex: [],
@@ -44,8 +46,15 @@ const translations = {
   },
 };
 
+const timeOptions = [15, 30, 60, 120];
+const wordOptions = [10, 25, 50, 100];
+
 export default function TypingTest() {
   const [language, setLanguage] = useState<Language>('fr');
+  const [testMode, setTestMode] = useState<TestMode>('time');
+  const [timeOption, setTimeOption] = useState(30);
+  const [wordsOption, setWordsOption] = useState(25);
+
   const [text, setText] = useState(() => getRandomText(language));
   const [userInput, setUserInput] = useState('');
   const [gameState, setGameState] = useState<GameState>('idle');
@@ -56,6 +65,7 @@ export default function TypingTest() {
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  
   const calculateStats = useCallback(() => {
     if (userInput.length === 0) return { wpm: 0, accuracy: 100 };
     
@@ -87,20 +97,28 @@ export default function TypingTest() {
     }
   }, []);
 
-  const resetGame = useCallback((lang: Language = language) => {
+  const resetGame = useCallback(() => {
     stopTimer();
-    setText(getRandomText(lang));
+    if (testMode === 'time') {
+      setText(getRandomWords(100, language));
+    } else {
+      setText(getRandomWords(wordsOption, language));
+    }
     setUserInput('');
     setGameState('idle');
     setStartTime(0);
     setElapsedTime(0);
     setTimeout(() => inputRef.current?.focus(), 50);
-  }, [stopTimer, language]);
+  }, [stopTimer, language, testMode, wordsOption]);
 
   const handleLanguageChange = (lang: Language) => {
     setLanguage(lang);
-    resetGame(lang);
+    resetGame();
   };
+  
+  useEffect(() => {
+    resetGame();
+  }, [testMode, timeOption, wordsOption, language]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -113,37 +131,47 @@ export default function TypingTest() {
     
     if (gameState !== 'finished') {
       setUserInput(value);
-      
-      // Check if finished
-      if (value.length >= text.length) {
-        stopTimer();
-        setGameState('finished');
-        
-        const finalStats = {
-          wpm: elapsedTime > 0 ? Math.round((value.length / 5) / (elapsedTime / 60)) : 0,
-          accuracy: (() => {
-            let correct = 0;
-            for (let i = 0; i < value.length; i++) {
-              if (value[i] === text[i]) correct++;
-            }
-            return Math.round((correct / value.length) * 100);
-          })(),
-        };
-        
-        const newResult: TypingResult = {
-          id: crypto.randomUUID(),
-          wpm: finalStats.wpm,
-          accuracy: finalStats.accuracy,
-          date: new Date().toISOString(),
-        };
-        
-        setHistory(prev => ({
-          ...prev,
-          typing: [newResult, ...prev.typing].slice(0, 10),
-        }));
+    }
+  }, [gameState, startTimer]);
+
+  const finishGame = useCallback(() => {
+    stopTimer();
+    setGameState('finished');
+    
+    const finalStats = {
+      wpm: elapsedTime > 0 ? Math.round((userInput.length / 5) / (elapsedTime / 60)) : 0,
+      accuracy: (() => {
+        let correct = 0;
+        for (let i = 0; i < userInput.length; i++) {
+          if (userInput[i] === text[i]) correct++;
+        }
+        return Math.round((correct / userInput.length) * 100);
+      })(),
+    };
+    
+    const newResult: TypingResult = {
+      id: crypto.randomUUID(),
+      wpm: finalStats.wpm,
+      accuracy: finalStats.accuracy,
+      date: new Date().toISOString(),
+    };
+    
+    setHistory(prev => ({
+      ...prev,
+      typing: [newResult, ...prev.typing].slice(0, 10),
+    }));
+  }, [stopTimer, elapsedTime, userInput, text, setHistory]);
+
+  useEffect(() => {
+    if (gameState === 'typing') {
+      if (testMode === 'time' && elapsedTime >= timeOption) {
+        finishGame();
+      }
+      if (testMode === 'words' && userInput.length >= text.length) {
+        finishGame();
       }
     }
-  }, [gameState, text, elapsedTime, startTimer, stopTimer, setHistory]);
+  }, [gameState, elapsedTime, userInput, text, testMode, timeOption, finishGame]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Tab' && gameState === 'finished') {
@@ -186,6 +214,38 @@ export default function TypingTest() {
             </div>
           </div>
 
+          <div className="flex flex-col items-center gap-4 mb-8">
+            <ToggleGroup type="single" value={testMode} onValueChange={(value: TestMode) => value && setTestMode(value)}>
+              <ToggleGroupItem value="time" aria-label="Time mode">
+                <Timer className="h-4 w-4 mr-2" />
+                Time
+              </ToggleGroupItem>
+              <ToggleGroupItem value="words" aria-label="Words mode">
+                <Pilcrow className="h-4 w-4 mr-2" />
+                Words
+              </ToggleGroupItem>
+            </ToggleGroup>
+
+            {testMode === 'time' && (
+              <div className="flex gap-2">
+                {timeOptions.map(option => (
+                  <Button key={option} variant={timeOption === option ? 'secondary' : 'ghost'} onClick={() => setTimeOption(option)}>
+                    {option}s
+                  </Button>
+                ))}
+              </div>
+            )}
+
+            {testMode === 'words' && (
+              <div className="flex gap-2">
+                {wordOptions.map(option => (
+                  <Button key={option} variant={wordsOption === option ? 'secondary' : 'ghost'} onClick={() => setWordsOption(option)}>
+                    {option}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="grid lg:grid-cols-4 gap-6">
             <div className="lg:col-span-4">
               {/* Stats bar */}

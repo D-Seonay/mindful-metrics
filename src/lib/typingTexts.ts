@@ -40,3 +40,16 @@ export function getRandomText(lang: "fr" | "en" = "fr"): string {
   const langTexts = typingTexts[lang];
   return langTexts[Math.floor(Math.random() * langTexts.length)];
 }
+
+export function getRandomWords(
+  count: number,
+  lang: "fr" | "en" = "fr"
+): string {
+  const langTexts = typingTexts[lang];
+  const allWords = langTexts.join(" ").split(" ");
+  let result = "";
+  for (let i = 0; i < count; i++) {
+    result += allWords[Math.floor(Math.random() * allWords.length)] + " ";
+  }
+  return result.trim();
+}
