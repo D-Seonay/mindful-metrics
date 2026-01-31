@@ -7,6 +7,8 @@ import type { PerformanceHistory, TypingResult } from '@/types/history';
 import { RotateCcw, Timer, Pilcrow } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 type GameState = 'idle' | 'typing' | 'finished';
 type Language = 'fr' | 'en';
@@ -30,6 +32,7 @@ const translations = {
     resultsTime: "temps",
     restartHint: "Appuyez sur <kbd class=\"px-2 py-1 rounded bg-secondary font-mono text-sm\">Tab</kbd> pour recommencer",
     startTyping: "Commencez à taper pour lancer le chronomètre",
+    punctuation: "Ponctuation",
   },
   en: {
     title: "Typing Speed Test",
@@ -43,6 +46,7 @@ const translations = {
     resultsTime: "time",
     restartHint: "Press <kbd class=\"px-2 py-1 rounded bg-secondary font-mono text-sm\">Tab</kbd> to restart",
     startTyping: "Start typing to begin the timer",
+    punctuation: "Punctuation",
   },
 };
 
@@ -54,8 +58,9 @@ export default function TypingTest() {
   const [testMode, setTestMode] = useState<TestMode>('time');
   const [timeOption, setTimeOption] = useState(30);
   const [wordsOption, setWordsOption] = useState(25);
+  const [includePunctuation, setIncludePunctuation] = useState(true);
 
-  const [text, setText] = useState(() => getRandomText(language));
+  const [text, setText] = useState(() => getRandomText(language, includePunctuation));
   const [userInput, setUserInput] = useState('');
   const [gameState, setGameState] = useState<GameState>('idle');
   const [startTime, setStartTime] = useState<number>(0);
@@ -100,16 +105,16 @@ export default function TypingTest() {
   const resetGame = useCallback(() => {
     stopTimer();
     if (testMode === 'time') {
-      setText(getRandomWords(100, language));
+      setText(getRandomWords(100, language, includePunctuation));
     } else {
-      setText(getRandomWords(wordsOption, language));
+      setText(getRandomWords(wordsOption, language, includePunctuation));
     }
     setUserInput('');
     setGameState('idle');
     setStartTime(0);
     setElapsedTime(0);
     setTimeout(() => inputRef.current?.focus(), 50);
-  }, [stopTimer, language, testMode, wordsOption]);
+  }, [stopTimer, language, testMode, wordsOption, includePunctuation]);
 
   const handleLanguageChange = (lang: Language) => {
     setLanguage(lang);
@@ -118,7 +123,7 @@ export default function TypingTest() {
   
   useEffect(() => {
     resetGame();
-  }, [testMode, timeOption, wordsOption, language]);
+  }, [testMode, timeOption, wordsOption, language, includePunctuation]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -159,10 +164,13 @@ export default function TypingTest() {
         date: new Date().toISOString(),
       };
       
-      setHistory(prev => ({
-        ...prev,
-        typing: [newResult, ...(prev.typing || [])].slice(0, 10),
-      }));
+      setHistory(prev => {
+        const newTypingHistory = [newResult, ...(prev.typing || [])].slice(0, 10);
+        return {
+          ...prev,
+          typing: newTypingHistory,
+        };
+      });
     }
   }, [gameState, elapsedTime, userInput, text, setHistory]);
 
@@ -219,6 +227,10 @@ export default function TypingTest() {
           </div>
 
           <div className="flex flex-col items-center gap-4 mb-8">
+            <div className="flex items-center space-x-2">
+              <Switch id="punctuation-mode" checked={includePunctuation} onCheckedChange={setIncludePunctuation} />
+              <Label htmlFor="punctuation-mode">{t.punctuation}</Label>
+            </div>
             <ToggleGroup type="single" value={testMode} onValueChange={(value: TestMode) => value && setTestMode(value)}>
               <ToggleGroupItem value="time" aria-label="Time mode">
                 <Timer className="h-4 w-4 mr-2" />

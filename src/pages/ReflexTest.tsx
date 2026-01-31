@@ -85,10 +85,13 @@ export default function ReflexTest() {
       time: average,
       date: new Date().toISOString(),
     };
-    setHistory(prev => ({
-      ...prev,
-      reflex: [newResult, ...(prev.reflex || [])].slice(0, 10),
-    }));
+    setHistory(prev => {
+      const newReflexHistory = [newResult, ...(prev.reflex || [])].slice(0, 10);
+      return {
+        ...prev,
+        reflex: newReflexHistory,
+      };
+    });
   }, [setHistory]);
 
   useEffect(() => {
