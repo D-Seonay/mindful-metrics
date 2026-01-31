@@ -1,19 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Layout } from '@/components/Layout';
-import { HistoryPanel } from '@/components/HistoryPanel';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { getRandomText } from '@/lib/typingTexts';
 import { cn } from '@/lib/utils';
-import type { TypingHistory, TypingResult } from '@/types/history';
+import type { PerformanceHistory, TypingResult } from '@/types/history';
 import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type GameState = 'idle' | 'typing' | 'finished';
 type Language = 'fr' | 'en';
 
-const initialHistory: TypingHistory = {
-  results: [],
-  bestWpm: null,
+const initialHistory: PerformanceHistory = {
+  reflex: [],
+  typing: [],
 };
 
 const translations = {
@@ -29,9 +28,6 @@ const translations = {
     resultsTime: "temps",
     restartHint: "Appuyez sur <kbd class=\"px-2 py-1 rounded bg-secondary font-mono text-sm\">Tab</kbd> pour recommencer",
     startTyping: "Commencez à taper pour lancer le chronomètre",
-    historyTitle: "Historique",
-    historyWpm: "WPM",
-    historyAccuracy: "Précision",
   },
   en: {
     title: "Typing Speed Test",
@@ -45,9 +41,6 @@ const translations = {
     resultsTime: "time",
     restartHint: "Press <kbd class=\"px-2 py-1 rounded bg-secondary font-mono text-sm\">Tab</kbd> to restart",
     startTyping: "Start typing to begin the timer",
-    historyTitle: "History",
-    historyWpm: "WPM",
-    historyAccuracy: "Accuracy",
   },
 };
 
@@ -58,7 +51,7 @@ export default function TypingTest() {
   const [gameState, setGameState] = useState<GameState>('idle');
   const [startTime, setStartTime] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [history, setHistory] = useLocalStorage<TypingHistory>('typing-history', initialHistory);
+  const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -144,11 +137,10 @@ export default function TypingTest() {
           date: new Date().toISOString(),
         };
         
-        setHistory(prev => {
-          const newResults = [newResult, ...prev.results].slice(0, 10);
-          const newBest = prev.bestWpm === null ? finalStats.wpm : Math.max(prev.bestWpm, finalStats.wpm);
-          return { results: newResults, bestWpm: newBest };
-        });
+        setHistory(prev => ({
+          ...prev,
+          typing: [newResult, ...prev.typing].slice(0, 10),
+        }));
       }
     }
   }, [gameState, text, elapsedTime, startTimer, stopTimer, setHistory]);
@@ -173,10 +165,6 @@ export default function TypingTest() {
     return () => stopTimer();
   }, [stopTimer]);
 
-  const handleClearHistory = () => {
-    setHistory(initialHistory);
-  };
-
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -199,7 +187,7 @@ export default function TypingTest() {
           </div>
 
           <div className="grid lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-4">
               {/* Stats bar */}
               <div className="flex items-center gap-6 mb-6 text-sm">
                 <div className="flex items-center gap-2">
@@ -300,24 +288,6 @@ export default function TypingTest() {
                   {t.startTyping}
                 </p>
               )}
-            </div>
-
-            <div className="lg:col-span-1">
-              <HistoryPanel
-                title={t.historyTitle}
-                items={history.results.map(r => ({
-                  id: r.id,
-                  date: r.date,
-                  value: r.wpm,
-                  secondaryValue: r.accuracy,
-                }))}
-                bestValue={history.bestWpm}
-                valueLabel={t.historyWpm}
-                secondaryLabel={t.historyAccuracy}
-                formatValue={(v) => `${v} WPM`}
-                formatSecondary={(v) => `${v}%`}
-                onClear={handleClearHistory}
-              />
             </div>
           </div>
         </div>
