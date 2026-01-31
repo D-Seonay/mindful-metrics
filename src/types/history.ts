@@ -11,12 +11,11 @@ export interface TypingResult {
   date: string; // ISO string
 }
 
-export interface ReflexHistory {
-  results: ReflexResult[];
-  bestTime: number | null;
-}
+export type ReflexHistory = ReflexResult[];
 
-export interface TypingHistory {
-  results: TypingResult[];
-  bestWpm: number | null;
+export type TypingHistory = TypingResult[];
+
+export interface PerformanceHistory {
+  reflex: ReflexHistory;
+  typing: TypingHistory;
 }

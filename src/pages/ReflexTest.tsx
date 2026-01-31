@@ -1,21 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Layout } from '@/components/Layout';
-import { HistoryPanel } from '@/components/HistoryPanel';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { cn } from '@/lib/utils';
-import type { ReflexHistory, ReflexResult } from '@/types/history';
+import type { PerformanceHistory, ReflexResult } from '@/types/history';
 
 type GameState = 'idle' | 'waiting' | 'ready' | 'result' | 'too-early';
 
-const initialHistory: ReflexHistory = {
-  results: [],
-  bestTime: null,
+const initialHistory: PerformanceHistory = {
+  reflex: [],
+  typing: [],
 };
 
 export default function ReflexTest() {
   const [gameState, setGameState] = useState<GameState>('idle');
   const [reactionTime, setReactionTime] = useState<number>(0);
-  const [history, setHistory] = useLocalStorage<ReflexHistory>('reflex-history', initialHistory);
+  const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
   
   const startTimeRef = useRef<number>(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -64,11 +63,10 @@ export default function ReflexTest() {
           date: new Date().toISOString(),
         };
         
-        setHistory(prev => {
-          const newResults = [newResult, ...prev.results].slice(0, 10);
-          const newBest = prev.bestTime === null ? time : Math.min(prev.bestTime, time);
-          return { results: newResults, bestTime: newBest };
-        });
+        setHistory(prev => ({
+          ...prev,
+          reflex: [newResult, ...prev.reflex].slice(0, 10),
+        }));
         break;
     }
   }, [gameState, startWaiting, clearTimeout, setHistory]);
@@ -76,10 +74,6 @@ export default function ReflexTest() {
   useEffect(() => {
     return () => clearTimeout();
   }, [clearTimeout]);
-
-  const handleClearHistory = () => {
-    setHistory(initialHistory);
-  };
 
   const getStateStyles = () => {
     switch (gameState) {
@@ -125,7 +119,7 @@ export default function ReflexTest() {
           </div>
 
           <div className="grid lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-3">
               <div
                 onClick={handleClick}
                 className={cn(
@@ -159,21 +153,6 @@ export default function ReflexTest() {
                   </span>
                 )}
               </div>
-            </div>
-
-            <div className="lg:col-span-1">
-              <HistoryPanel
-                title="Historique"
-                items={history.results.map(r => ({
-                  id: r.id,
-                  date: r.date,
-                  value: r.time,
-                }))}
-                bestValue={history.bestTime}
-                valueLabel="Temps"
-                formatValue={(v) => `${v} ms`}
-                onClear={handleClearHistory}
-              />
             </div>
           </div>
         </div>
