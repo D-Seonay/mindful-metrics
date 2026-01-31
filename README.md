@@ -1,73 +1,57 @@
-# Welcome to your Lovable project
+# Mindful Metrics
 
-## Project info
+A simple web application to test and track your reflexes and typing speed. This project is built with Vite, React, TypeScript, and shadcn/ui.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+- **Reflex Test**: Test your reaction time. The application will calculate the average of 5 tests.
+- **Typing Test**: Test your typing speed. You can choose between different modes:
+  - **Time**: Test for a specific duration (15s, 30s, 60s, 120s).
+  - **Words**: Type a specific number of words (10, 25, 50, 100).
+- **Performance Tracking**: A dedicated page to view your history, statistics, and progress for both the reflex and typing tests.
+- **Language Selection**: The typing test supports both English and French.
+- **Light/Dark Mode**: The application supports both light and dark themes.
+- **Data Export**: You can save your entire performance history as a JSON file.
 
-There are several ways of editing your application.
+## Getting Started
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [npm](https://www.npmjs.com/)
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/D-Seonay/mindful-metrics.git
+   ```
+2. Navigate to the project directory:
+   ```sh
+   cd mindful-metrics
+   ```
+3. Install the dependencies:
+   ```sh
+   npm install
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Running the Application
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+To start the development server, run:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:5173`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Technologies Used
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- [Vite](https://vitejs.dev/)
+- [React](https://reactjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [Recharts](https://recharts.org/)
+- [React Router](https://reactrouter.com/)
+- [Lucide React](https://lucide.dev/guide/packages/lucide-react) for icons.
