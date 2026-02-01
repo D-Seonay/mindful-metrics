@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/utils';
-import { Zap, Keyboard, BarChart } from 'lucide-react';
+import { Zap, Keyboard, BarChart, Hourglass } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -54,6 +54,20 @@ export function Layout({ children }: LayoutProps) {
             >
               <BarChart className="h-4 w-4" />
               <span>Performance</span>
+            </NavLink>
+            <NavLink
+              to="/time-perception"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                  isActive
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                )
+              }
+            >
+              <Hourglass className="h-4 w-4" />
+              <span>Time Perception</span>
             </NavLink>
           </div>
           <ThemeToggle />

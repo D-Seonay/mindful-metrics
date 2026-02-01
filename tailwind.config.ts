@@ -68,6 +68,17 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        sage: {
+          100: "#f0f2f0",
+          200: "#d9e0d7",
+          300: "#c3cdc1",
+          400: "#adb9ac",
+          500: "#97a697",
+          600: "#819282",
+          700: "#6b7e6d",
+          800: "#556a58",
+          900: "#3f5643",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
