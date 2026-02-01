@@ -277,4 +277,22 @@
       opacity: 1;
     }
   }
+
+  /* Ripple animation for aim trainer */
+  .animate-ripple {
+    animation: ripple 0.5s ease-out;
+  }
+
+  @keyframes ripple {
+    from {
+      width: 0;
+      height: 0;
+      opacity: 1;
+    }
+    to {
+      width: 80px;
+      height: 80px;
+      opacity: 0;
+    }
+  }
 }
