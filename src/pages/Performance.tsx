@@ -281,6 +281,44 @@ export default function Performance() {
               </CardContent>
             </Card>
           </div>
+
+          <div>
+            <h2 className="text-xl font-bold mb-4">Visual Memory</h2>
+            <div className="grid grid-cols-1 gap-6 mb-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Best Level</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-4xl font-bold">{history.visualMemory?.length > 0 ? Math.max(...history.visualMemory.map(r => r.levelReached)) : 0}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Visual Memory History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Level Reached</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {history.visualMemory?.map(result => (
+                      <TableRow key={result.id}>
+                        <TableCell>{new Date(result.date).toLocaleString()}</TableCell>
+                        <TableCell>{result.levelReached}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </Layout>

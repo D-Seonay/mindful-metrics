@@ -25,6 +25,12 @@ export interface AimTrainerResult {
   date: string; // ISO string
 }
 
+export interface VisualMemoryResult {
+  id: string;
+  levelReached: number;
+  date: string; // ISO string
+}
+
 export type ReflexHistory = ReflexResult[];
 
 export type TypingHistory = TypingResult[];
@@ -33,9 +39,12 @@ export type TimePerceptionHistory = TimePerceptionResult[];
 
 export type AimTrainerHistory = AimTrainerResult[];
 
+export type VisualMemoryHistory = VisualMemoryResult[];
+
 export interface PerformanceHistory {
   reflex: ReflexHistory;
   typing: TypingHistory;
   timePerception: TimePerceptionHistory;
   aimTrainer: AimTrainerHistory;
+  visualMemory: VisualMemoryHistory;
 }
