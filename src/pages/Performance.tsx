@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 const initialHistory: PerformanceHistory = {
   reflex: [],
   typing: [],
+  timePerception: [],
 };
 
 export default function Performance() {
@@ -35,6 +36,15 @@ export default function Performance() {
     date: new Date(r.date).toLocaleDateString(),
     time: r.time,
   })).reverse();
+
+  const bestTimePerception = history.timePerception?.length > 0 ? Math.min(...history.timePerception.map(r => Math.abs(r.difference))) : 0;
+  const averageTimePerception = history.timePerception?.length > 0
+    ? (history.timePerception.reduce((acc, r) => acc + r.difference, 0) / history.timePerception.length)
+    : 0;
+  const timePerceptionChartData = history.timePerception?.map(r => ({
+    date: new Date(r.date).toLocaleDateString(),
+    difference: r.difference,
+  })).reverse() || [];
 
 
   const handleSave = () => {
@@ -63,10 +73,10 @@ export default function Performance() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-3 gap-8">
           <div>
             <h2 className="text-xl font-bold mb-4">Typing</h2>
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 gap-6 mb-8">
               <Card>
                 <CardHeader>
                   <CardTitle>Best WPM</CardTitle>
@@ -142,7 +152,7 @@ export default function Performance() {
 
           <div>
             <h2 className="text-xl font-bold mb-4">Reflex</h2>
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 gap-6 mb-8">
               <Card>
                 <CardHeader>
                   <CardTitle>Best Time</CardTitle>
@@ -198,6 +208,74 @@ export default function Performance() {
                       <TableRow key={result.id}>
                         <TableCell>{new Date(result.date).toLocaleString()}</TableCell>
                         <TableCell>{result.time}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div>
+            <h2 className="text-xl font-bold mb-4">Time Perception</h2>
+            <div className="grid grid-cols-1 gap-6 mb-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Best Score</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-4xl font-bold">{bestTimePerception.toFixed(2)}s</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Average Difference</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-4xl font-bold">{averageTimePerception.toFixed(2)}s</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Difference Over Time</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={{}} className="h-64 w-full">
+                  <AreaChart data={timePerceptionChartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent indicator="dot" />}
+                    />
+                    <Area type="monotone" dataKey="difference" fill="var(--color-primary)" stroke="var(--color-primary)" />
+                  </AreaChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Time Perception History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Time (s)</TableHead>
+                      <TableHead>Difference (s)</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {history.timePerception?.map(result => (
+                      <TableRow key={result.id}>
+                        <TableCell>{new Date(result.date).toLocaleString()}</TableCell>
+                        <TableCell>{result.time.toFixed(2)}</TableCell>
+                        <TableCell>{result.difference.toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

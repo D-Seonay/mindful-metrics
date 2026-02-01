@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ReflexTest from "./pages/ReflexTest";
 import TypingTest from "./pages/TypingTest";
 import Performance from "./pages/Performance";
+import TimePerceptionTest from "./pages/TimePerception";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/reflexes" element={<ReflexTest />} />
           <Route path="/typing" element={<TypingTest />} />
           <Route path="/performance" element={<Performance />} />
+          <Route path="/time-perception" element={<TimePerceptionTest />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
