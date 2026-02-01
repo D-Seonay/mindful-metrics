@@ -18,14 +18,24 @@ export interface TimePerceptionResult {
   date: string; // ISO string
 }
 
+export interface AimTrainerResult {
+  id: string;
+  totalTime: number; // in milliseconds
+  averageTimePerTarget: number; // in milliseconds
+  date: string; // ISO string
+}
+
 export type ReflexHistory = ReflexResult[];
 
 export type TypingHistory = TypingResult[];
 
 export type TimePerceptionHistory = TimePerceptionResult[];
 
+export type AimTrainerHistory = AimTrainerResult[];
+
 export interface PerformanceHistory {
   reflex: ReflexHistory;
   typing: TypingHistory;
   timePerception: TimePerceptionHistory;
+  aimTrainer: AimTrainerHistory;
 }

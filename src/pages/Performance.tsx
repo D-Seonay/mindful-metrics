@@ -11,6 +11,7 @@ const initialHistory: PerformanceHistory = {
   reflex: [],
   typing: [],
   timePerception: [],
+  aimTrainer: [],
 };
 
 export default function Performance() {
@@ -46,6 +47,15 @@ export default function Performance() {
     difference: r.difference,
   })).reverse() || [];
 
+  const bestAimTrainerTime = history.aimTrainer?.length > 0 ? Math.min(...history.aimTrainer.map(r => r.totalTime)) : 0;
+  const averageAimTrainerTime = history.aimTrainer?.length > 0
+    ? (history.aimTrainer.reduce((acc, r) => acc + r.totalTime, 0) / history.aimTrainer.length)
+    : 0;
+  const aimTrainerChartData = history.aimTrainer?.map(r => ({
+    date: new Date(r.date).toLocaleDateString(),
+    totalTime: r.totalTime,
+  })).reverse() || [];
+
 
   const handleSave = () => {
     const data = JSON.stringify(history, null, 2);
@@ -73,7 +83,7 @@ export default function Performance() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <h2 className="text-xl font-bold mb-4">Typing</h2>
             <div className="grid grid-cols-1 gap-6 mb-8">
@@ -102,26 +112,6 @@ export default function Performance() {
                 </CardContent>
               </Card>
             </div>
-
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>WPM Over Time</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={{}} className="h-64 w-full">
-                  <AreaChart data={typingChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent indicator="dot" />}
-                    />
-                    <Area type="monotone" dataKey="wpm" fill="var(--color-primary)" stroke="var(--color-primary)" />
-                  </AreaChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
 
             <Card>
               <CardHeader>
@@ -171,26 +161,6 @@ export default function Performance() {
               </Card>
             </div>
 
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Time Over Time</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={{}} className="h-64 w-full">
-                  <AreaChart data={reflexChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis reversed />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent indicator="dot" />}
-                    />
-                    <Area type="monotone" dataKey="time" fill="var(--color-primary)" stroke="var(--color-primary)" />
-                  </AreaChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Reflex History</CardTitle>
@@ -237,26 +207,6 @@ export default function Performance() {
               </Card>
             </div>
 
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Difference Over Time</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={{}} className="h-64 w-full">
-                  <AreaChart data={timePerceptionChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent indicator="dot" />}
-                    />
-                    <Area type="monotone" dataKey="difference" fill="var(--color-primary)" stroke="var(--color-primary)" />
-                  </AreaChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Time Perception History</CardTitle>
@@ -276,6 +226,54 @@ export default function Performance() {
                         <TableCell>{new Date(result.date).toLocaleString()}</TableCell>
                         <TableCell>{result.time.toFixed(2)}</TableCell>
                         <TableCell>{result.difference.toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-bold mb-4">Aim Trainer</h2>
+            <div className="grid grid-cols-1 gap-6 mb-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Best Time</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-4xl font-bold">{(bestAimTrainerTime / 1000).toFixed(2)}s</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Average Time</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-4xl font-bold">{(averageAimTrainerTime / 1000).toFixed(2)}s</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Aim Trainer History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Total Time (s)</TableHead>
+                      <TableHead>Avg Per Target (ms)</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {history.aimTrainer?.map(result => (
+                      <TableRow key={result.id}>
+                        <TableCell>{new Date(result.date).toLocaleString()}</TableCell>
+                        <TableCell>{(result.totalTime / 1000).toFixed(2)}</TableCell>
+                        <TableCell>{result.averageTimePerTarget.toFixed(0)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
