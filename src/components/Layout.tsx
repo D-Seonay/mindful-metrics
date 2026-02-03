@@ -3,6 +3,8 @@ import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/utils';
 import { Zap, Keyboard, BarChart, Hourglass, MousePointerClick, User } from 'lucide-react';
 
+import { StreakCounter } from './StreakCounter';
+
 interface LayoutProps {
   children: React.ReactNode;
 }
@@ -84,7 +86,10 @@ export function Layout({ children }: LayoutProps) {
               <span>Profil</span>
             </NavLink>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <StreakCounter />
+            <ThemeToggle />
+          </div>
         </nav>
       </header>
       <main className="flex-1 pt-16">

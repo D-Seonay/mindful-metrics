@@ -3,6 +3,7 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import type { PerformanceHistory, ReflexResult, TypingResult, TimePerceptionResult, AimTrainerResult } from "@/types/history";
 import { Zap, Keyboard, Hourglass, MousePointerClick } from "lucide-react";
 import { StatsDetailDialog } from "./StatsDetailDialog";
+import { ActivityHeatmap } from "./ActivityHeatmap";
 
 const initialHistory: PerformanceHistory = {
   reflex: [],
@@ -62,6 +63,9 @@ export function StatsOverview() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Activity Heatmap */}
+      <ActivityHeatmap />
+
       {/* Reflexes */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
