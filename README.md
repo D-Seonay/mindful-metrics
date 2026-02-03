@@ -2,6 +2,10 @@
 
 A simple web application to test and track your reflexes and typing speed. This project is built with Vite, React, TypeScript, and shadcn/ui.
 
+## Project Vision
+
+Mindful Metrics aims to provide an intuitive and engaging platform for users to enhance their cognitive performance through interactive tests and detailed progress tracking. Our goal is to empower users to understand and improve their reaction times, typing speed, and overall mental agility.
+
 ## Features
 
 - **Reflex Test**: Test your reaction time. The application will calculate the average of 5 tests.
@@ -12,6 +16,10 @@ A simple web application to test and track your reflexes and typing speed. This 
 - **Language Selection**: The typing test supports both English and French.
 - **Light/Dark Mode**: The application supports both light and dark themes.
 - **Data Export**: You can save your entire performance history as a JSON file.
+
+## Contributing
+
+We welcome contributions! If you're interested in improving Mindful Metrics, please feel free to fork the repository and submit pull requests. Ensure your code adheres to the existing style and conventions, and includes appropriate tests.
 
 ## Getting Started
 
