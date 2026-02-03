@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Layout } from '@/components/Layout';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useKeyboardControls } from '@/hooks/useKeyboardControls';
 import { cn } from '@/lib/utils';
 import type { PerformanceHistory, ReflexResult } from '@/types/history';
 
@@ -79,6 +80,8 @@ export default function ReflexTest() {
     }
   }, [gameState, startWaiting, clearTimeout, testCount, resetGame]);
 
+  useKeyboardControls(handleClick);
+
   const saveHistory = useCallback((average: number) => {
     const newResult: ReflexResult = {
       id: crypto.randomUUID(),
@@ -127,17 +130,17 @@ export default function ReflexTest() {
 
   const getStateText = () => {
      if (gameState === 'finished') {
-      return { main: `${averageResult} ms`, sub: 'Cliquez pour recommencer' };
+      return { main: `${averageResult} ms`, sub: 'Cliquez ou appuyez pour recommencer' };
     }
     switch (gameState) {
       case 'idle':
-        return { main: 'Cliquez pour commencer', sub: testCount === 0 ? `Faites ${TEST_COUNT} tests pour obtenir une moyenne` : `Test ${testCount + 1}/${TEST_COUNT}`};
+        return { main: 'Cliquez ou appuyez pour commencer', sub: testCount === 0 ? `Faites ${TEST_COUNT} tests pour obtenir une moyenne` : `Test ${testCount + 1}/${TEST_COUNT}`};
       case 'waiting':
         return { main: 'Attendez le vert...', sub: `Test ${testCount + 1}/${TEST_COUNT}` };
       case 'ready':
-        return { main: 'Cliquez !', sub: `Test ${testCount + 1}/${TEST_COUNT}` };
+        return { main: 'CLIQUEZ !', sub: `Test ${testCount + 1}/${TEST_COUNT}` };
       case 'result':
-        return { main: `${reactionTime} ms`, sub: 'Cliquez pour continuer' };
+        return { main: `${reactionTime} ms`, sub: 'Cliquez ou appuyez pour continuer' };
     }
   };
 
@@ -150,7 +153,7 @@ export default function ReflexTest() {
           <div className="mb-8">
             <h1 className="text-2xl font-bold mb-2">Test de Réflexes (Moyenne de 5)</h1>
             <p className="text-muted-foreground">
-              Cliquez dès que l'écran devient vert pour mesurer votre temps de réaction.
+              Cliquez ou appuyez sur Espace/Entrée dès que l'écran devient vert pour mesurer votre temps de réaction.
             </p>
           </div>
 
@@ -165,7 +168,7 @@ export default function ReflexTest() {
               >
                 <span
                   className={cn(
-                    "text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight",
+                    "text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-center",
                     (gameState === 'result' || gameState === 'finished') && "result-display animate-pulse-subtle",
                     gameState === 'waiting' ? "text-warning-foreground" : "",
                     gameState === 'ready' ? "text-success-foreground" : "",
