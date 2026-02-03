@@ -20,8 +20,11 @@ export interface TimePerceptionResult {
 
 export interface AimTrainerResult {
   id: string;
-  totalTime: number; // in milliseconds
-  averageTimePerTarget: number; // in milliseconds
+  mode: 'TIME_ATTACK' | 'PRECISION' | 'cLASSIC'; // Added modes, 'CLASSIC' for backward compatibility
+  score?: number; // Targets hit (primary metric for Time Attack)
+  totalTime: number; // Duration of the session
+  averageTimePerTarget: number;
+  accuracy?: number; // Hits / Clicks
   date: string; // ISO string
 }
 
