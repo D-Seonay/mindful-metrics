@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Layout } from '@/components/Layout';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useKeyboardControls } from '@/hooks/useKeyboardControls';
+import { useSoundSystem } from '@/hooks/useSoundSystem';
 import { cn } from '@/lib/utils';
 import type { PerformanceHistory, ReflexResult } from '@/types/history';
 
@@ -24,6 +25,8 @@ export default function ReflexTest() {
   const [testResults, setTestResults] = useState<number[]>([]);
   const [averageResult, setAverageResult] = useState(0);
   
+  const { playSound } = useSoundSystem();
+  
   const startTimeRef = useRef<number>(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -38,13 +41,18 @@ export default function ReflexTest() {
     setGameState('waiting');
     clearTimeout();
     
+    // Play start sound
+    playSound('shoot');
+
     const delay = 2000 + Math.random() * 3000;
     
     timeoutRef.current = setTimeout(() => {
       setGameState('ready');
       startTimeRef.current = performance.now();
+      // Play ready sound? Maybe not, visual cue is primary for reaction time.
+      // Audio cue might be unfair if audio latency varies. Visual change is standard.
     }, delay);
-  }, [clearTimeout]);
+  }, [clearTimeout, playSound]);
   
   const resetGame = useCallback(() => {
     setGameState('idle');
@@ -52,7 +60,8 @@ export default function ReflexTest() {
     setTestCount(0);
     setTestResults([]);
     setAverageResult(0);
-  }, []);
+    playSound('shoot');
+  }, [playSound]);
 
   const handleClick = useCallback(() => {
     switch (gameState) {
@@ -67,6 +76,7 @@ export default function ReflexTest() {
       case 'waiting':
         clearTimeout();
         setGameState('idle'); // Reset to idle so user can click to start this attempt again
+        playSound('miss'); // Too early
         break;
       case 'ready':
         const endTime = performance.now();
@@ -75,12 +85,13 @@ export default function ReflexTest() {
         setTestResults(prev => [...prev, time]);
         setTestCount(prev => prev + 1);
         setGameState('result');
+        playSound('hit'); // Success
         break;
       case 'finished':
         resetGame();
         break;
     }
-  }, [gameState, startWaiting, clearTimeout, testCount, resetGame]);
+  }, [gameState, startWaiting, clearTimeout, testCount, resetGame, playSound]);
 
   useKeyboardControls(handleClick);
 

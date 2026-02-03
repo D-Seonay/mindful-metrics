@@ -3,6 +3,7 @@ import { Layout } from '@/components/Layout';
 import { cn } from '@/lib/utils';
 import { Dot } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useSoundSystem } from '@/hooks/useSoundSystem';
 import type { PerformanceHistory, TimePerceptionResult } from '@/types/history';
 import { Button } from '@/components/ui/button';
 
@@ -20,17 +21,21 @@ export default function TimePerceptionTest() {
   const [startTime, setStartTime] = useState<number>(0);
   const [result, setResult] = useState<number>(0);
   const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
+  const { playSound } = useSoundSystem();
 
   const handleClick = useCallback(() => {
     if (gameState === 'idle') {
       setStartTime(performance.now());
       setGameState('running');
+      playSound('shoot'); // Start click
     } else if (gameState === 'running') {
       const endTime = performance.now();
       const duration = (endTime - startTime) / 1000;
       setResult(duration);
       setGameState('result');
       
+      playSound('hit'); // Stop click / Result
+
       const newResult: TimePerceptionResult = {
         id: crypto.randomUUID(),
         time: duration,
@@ -46,8 +51,9 @@ export default function TimePerceptionTest() {
     } else { // gameState === 'result'
       setGameState('idle');
       setResult(0);
+      playSound('shoot'); // Reset click
     }
-  }, [gameState, startTime, setHistory]);
+  }, [gameState, startTime, setHistory, playSound]);
 
   const difference = result - 10;
 

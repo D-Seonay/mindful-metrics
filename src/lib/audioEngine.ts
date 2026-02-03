@@ -45,7 +45,7 @@ class AudioEngine {
     this.setVolume(this.volume); // Re-apply volume based on mute state
   }
 
-  public play(type: 'shoot' | 'hit' | 'miss') {
+  public play(type: 'shoot' | 'hit' | 'miss' | 'type') {
     if (!this.context || !this.masterGain || !this.buffers[type]) return;
 
     // Create source
@@ -66,6 +66,7 @@ class AudioEngine {
     this.buffers['shoot'] = this.createShootSound();
     this.buffers['hit'] = this.createHitSound();
     this.buffers['miss'] = this.createMissSound();
+    this.buffers['type'] = this.createTypeSound();
   }
 
   private createShootSound(): AudioBuffer {
@@ -113,6 +114,22 @@ class AudioEngine {
       const wave = Math.sign(Math.sin(2 * Math.PI * freq * t));
       const envelope = Math.exp(-t * 15);
       data[i] = wave * envelope * 0.5;
+    }
+    return buffer;
+  }
+
+  private createTypeSound(): AudioBuffer {
+    const duration = 0.03; // Very short click
+    const sampleRate = this.context!.sampleRate;
+    const buffer = this.context!.createBuffer(1, sampleRate * duration, sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < buffer.length; i++) {
+        // High frequency filtered noise or short impulse
+        const noise = Math.random() * 2 - 1;
+        // Fast decay
+        const decay = Math.exp(-i / (sampleRate * 0.005));
+        data[i] = noise * decay * 0.3; // Lower volume
     }
     return buffer;
   }

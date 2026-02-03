@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Layout } from '@/components/Layout';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useSoundSystem } from '@/hooks/useSoundSystem';
 import { getRandomText, getRandomWords } from '@/lib/typingTexts';
 import { cn } from '@/lib/utils';
 import type { PerformanceHistory, TypingResult } from '@/types/history';
@@ -66,6 +67,7 @@ export default function TypingTest() {
   const [startTime, setStartTime] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
+  const { playSound } = useSoundSystem();
   
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -128,6 +130,11 @@ export default function TypingTest() {
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
+    // Play type sound on every character added
+    if (value.length > userInput.length) {
+       playSound('type');
+    }
+
     if (gameState === 'idle' && value.length > 0) {
       setGameState('typing');
       setStartTime(Date.now());
@@ -137,12 +144,13 @@ export default function TypingTest() {
     if (gameState !== 'finished') {
       setUserInput(value);
     }
-  }, [gameState, startTimer]);
+  }, [gameState, startTimer, userInput.length, playSound]);
 
   const finishGame = useCallback(() => {
     stopTimer();
     setGameState('finished');
-  }, [stopTimer]);
+    playSound('hit');
+  }, [stopTimer, playSound]);
 
   useEffect(() => {
     if (gameState === 'finished') {

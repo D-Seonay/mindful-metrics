@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAimGame, GameMode, MovementType } from '@/hooks/useAimGame';
 import { useSoundSystem } from '@/hooks/useSoundSystem';
-import { AudioSettings } from '@/components/AudioSettings';
 import type { PerformanceHistory, AimTrainerResult } from '@/types/history';
 import { Clock, Crosshair } from 'lucide-react';
 
@@ -158,7 +157,6 @@ export default function AimTrainer() {
                    <span>Score: {stats.score}</span>
                 </div>
              )}
-             <AudioSettings />
           </div>
         </div>
 
