@@ -12,6 +12,7 @@ const initialHistory: PerformanceHistory = {
   reflex: [],
   typing: [],
   timePerception: [],
+  aimTrainer: []
 };
 
 export default function TimePerceptionTest() {

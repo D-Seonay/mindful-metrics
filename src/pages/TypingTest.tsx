@@ -15,6 +15,8 @@ type TestMode = 'time' | 'words';
 const initialHistory: PerformanceHistory = {
   reflex: [],
   typing: [],
+  timePerception: [],
+  aimTrainer: []
 };
 
 const translations = {

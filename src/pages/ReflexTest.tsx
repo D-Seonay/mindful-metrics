@@ -10,6 +10,8 @@ type GameState = 'idle' | 'waiting' | 'ready' | 'result' | 'finished';
 const initialHistory: PerformanceHistory = {
   reflex: [],
   typing: [],
+  timePerception: [],
+  aimTrainer: []
 };
 
 const TEST_COUNT = 5;
