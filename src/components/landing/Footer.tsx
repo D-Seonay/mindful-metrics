@@ -6,7 +6,7 @@ export function Footer() {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-xl text-white">Mindful<span className="text-cyan-500">Metrics</span></span>
+            <span className="font-bold text-xl text-white">Mindful<span className="text-blue-500">Metrics</span></span>
             <span className="text-slate-600">|</span>
             <span className="text-sm text-slate-500">© 2026 All rights reserved.</span>
           </div>
@@ -24,7 +24,7 @@ export function Footer() {
             <div className="flex items-center gap-1 text-slate-400 text-sm">
               <span>Made with</span>
               <Heart className="w-4 h-4 text-red-500 fill-current animate-pulse" />
-              <span>for gamers</span>
+              <span>for self-improvement</span>
             </div>
           </div>
         </div>
