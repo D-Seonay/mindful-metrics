@@ -1,16 +1,15 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useAimGame, GameMode, MovementType } from '@/hooks/useAimGame';
 import type { PerformanceHistory, AimTrainerResult } from '@/types/history';
-
-type GameState = 'idle' | 'running' | 'finished';
-type Target = { x: number; y: number; id: number };
-type ClickEffect = { x: number; y: number; id: number };
-
-const TARGET_RADIUS = 30;
-const TOTAL_TARGETS = 30;
+import { Clock, Crosshair } from 'lucide-react';
 
 const initialHistory: PerformanceHistory = {
   reflex: [],
@@ -20,142 +19,267 @@ const initialHistory: PerformanceHistory = {
 };
 
 export default function AimTrainer() {
-  const [gameState, setGameState] = useState<GameState>('idle');
-  const [targetsClicked, setTargetsClicked] = useState(0);
-  const [totalTime, setTotalTime] = useState(0);
-  const [currentTarget, setCurrentTarget] = useState<Target | null>(null);
-  const [clickEffects, setClickEffects] = useState<ClickEffect[]>([]);
   const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
-  
-  const gameAreaRef = useRef<HTMLDivElement>(null);
-  const timerRef = useRef<number>(0);
+  const [clickEffects, setClickEffects] = useState<{x: number, y: number, id: number}[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const createRandomTarget = useCallback(() => {
-    if (!gameAreaRef.current) return;
-    const { width, height } = gameAreaRef.current.getBoundingClientRect();
-    const x = Math.random() * (width - TARGET_RADIUS * 2) + TARGET_RADIUS;
-    const y = Math.random() * (height - TARGET_RADIUS * 2) + TARGET_RADIUS;
-    setCurrentTarget({ x, y, id: Date.now() });
-  }, []);
+  // Local state for menu configuration
+  const [movement, setMovement] = useState<MovementType>('STATIC');
+  const [autoDismiss, setAutoDismiss] = useState<string>("0");
 
-  const startGame = useCallback(() => {
-    setTargetsClicked(0);
-    setTotalTime(0);
-    setGameState('running');
-    createRandomTarget();
-    timerRef.current = performance.now();
-  }, [createRandomTarget]);
+  const {
+    gameState,
+    targets,
+    stats,
+    config,
+    startGame,
+    stopGame,
+    resetGame,
+    clickTarget,
+    registerClick,
+    setGameArea
+  } = useAimGame();
 
-  const handleTargetClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (gameState !== 'running' || !currentTarget) return;
-
-    const newTargetsClicked = targetsClicked + 1;
-
-    // Add ripple effect with corrected coordinates relative to the game container
-    let effectX = e.clientX;
-    let effectY = e.clientY;
-
-    if (gameAreaRef.current) {
-        const rect = gameAreaRef.current.getBoundingClientRect();
-        effectX = e.clientX - rect.left;
-        effectY = e.clientY - rect.top;
+  // Initialize game area size
+  useEffect(() => {
+    if (containerRef.current) {
+      setGameArea(containerRef.current.clientWidth, containerRef.current.clientHeight);
     }
+    const handleResize = () => {
+        if (containerRef.current) {
+            setGameArea(containerRef.current.clientWidth, containerRef.current.clientHeight);
+        }
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [setGameArea]);
 
-    const newEffect: ClickEffect = { x: effectX, y: effectY, id: Date.now() };
-    setClickEffects(prev => [...prev, newEffect]);
-    setTimeout(() => {
-      setClickEffects(prev => prev.filter(effect => effect.id !== newEffect.id));
-    }, 500);
-
-    if (newTargetsClicked >= TOTAL_TARGETS) {
-      const endTime = performance.now();
-      const timeTaken = endTime - timerRef.current;
-      setTotalTime(timeTaken);
-      setGameState('finished');
-      setCurrentTarget(null);
+  // Save history when game finishes
+  useEffect(() => {
+    if (gameState === 'FINISHED') {
+      const duration = stats.endTime - stats.startTime;
+      const averageTime = stats.score > 0 ? duration / stats.score : 0;
+      const accuracy = stats.totalClicks > 0 ? Math.round((stats.score / stats.totalClicks) * 100) : 0;
 
       const newResult: AimTrainerResult = {
         id: crypto.randomUUID(),
-        totalTime: timeTaken,
-        averageTimePerTarget: timeTaken / TOTAL_TARGETS,
+        mode: config.mode,
+        score: stats.score,
+        totalTime: duration,
+        averageTimePerTarget: averageTime,
+        accuracy: accuracy,
         date: new Date().toISOString(),
       };
 
       setHistory(prev => ({
         ...prev,
-        aimTrainer: [newResult, ...(prev.aimTrainer || [])].slice(0, 10),
+        aimTrainer: [newResult, ...(prev.aimTrainer || [])].slice(0, 20),
       }));
-
-    } else {
-      createRandomTarget();
     }
-    setTargetsClicked(newTargetsClicked);
+  }, [gameState, stats, config.mode, setHistory]);
+
+  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (gameState !== 'PLAYING') return;
+    
+    // Calculate relative coordinates
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Register click for stats
+    registerClick();
+
+    // Visual effect
+    const newEffect = { x, y, id: Date.now() };
+    setClickEffects(prev => [...prev, newEffect]);
+    setTimeout(() => {
+      setClickEffects(prev => prev.filter(ef => ef.id !== newEffect.id));
+    }, 500);
   };
-  
-  const resetGame = () => {
-    setGameState('idle');
-    setTargetsClicked(0);
-    setTotalTime(0);
-  }
+
+  const handleTargetClick = (e: React.MouseEvent<HTMLDivElement>, targetId: number) => {
+    e.stopPropagation(); // Stop propagation so we don't count double clicks if logic was different, but here we invoke visual effect manually below
+    
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (rect) {
+       const x = e.clientX - rect.left;
+       const y = e.clientY - rect.top;
+       const newEffect = { x, y, id: Date.now() };
+        setClickEffects(prev => [...prev, newEffect]);
+        setTimeout(() => {
+            setClickEffects(prev => prev.filter(ef => ef.id !== newEffect.id));
+        }, 500);
+    }
+    
+    clickTarget(targetId);
+  };
+
+  const handleStartTimeAttack = () => {
+      startGame({ 
+          mode: 'TIME_ATTACK', 
+          movement: movement, 
+          autoDismissTime: Number(autoDismiss), 
+          duration: 30 
+      });
+  };
+
+  const handleStartPrecision = () => {
+      startGame({ 
+          mode: 'PRECISION', 
+          movement: 'STATIC', // Enforced static for precision for now, or could use same state
+          targetCount: 20 
+      });
+  };
 
   return (
     <Layout>
-      <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-        <h1 className="text-2xl font-bold mb-2">Aim Trainer</h1>
-        <p className="text-muted-foreground mb-4">Click 30 targets as fast as you can.</p>
-
-        <div 
-          ref={gameAreaRef}
-          className="relative w-full h-[60vh] bg-secondary/30 rounded-lg overflow-hidden cursor-crosshair"
-          onClick={gameState === 'running' && !currentTarget ? createRandomTarget : undefined}
-        >
-          {gameState === 'running' && currentTarget && (
-            <div
-              className="absolute rounded-full bg-primary"
-              style={{
-                left: currentTarget.x,
-                top: currentTarget.y,
-                width: TARGET_RADIUS * 2,
-                height: TARGET_RADIUS * 2,
-                transform: 'translate(-50%, -50%)',
-              }}
-              onClick={handleTargetClick}
-            />
-          )}
-
-          {clickEffects.map(effect => (
-            <div
-              key={effect.id}
-              className="absolute rounded-full border-2 border-primary animate-ripple"
-              style={{
-                left: effect.x,
-                top: effect.y,
-                transform: 'translate(-50%, -50%)',
-              }}
-            />
-          ))}
-
-          {gameState === 'idle' && (
-            <div className="flex items-center justify-center h-full">
-              <Button onClick={startGame}>Start</Button>
-            </div>
-          )}
-
-          {gameState === 'finished' && (
-            <div className="flex flex-col items-center justify-center h-full animate-fade-in">
-              <h2 className="text-4xl font-bold">Finished!</h2>
-              <p className="text-2xl mt-2">Total Time: {(totalTime / 1000).toFixed(2)}s</p>
-              <p className="text-lg text-muted-foreground">Avg per target: {(totalTime / TOTAL_TARGETS).toFixed(0)}ms</p>
-              <Button onClick={resetGame} className="mt-6">Restart</Button>
-            </div>
+      <div className="container mx-auto px-4 py-8 h-[calc(100vh-64px)] flex flex-col">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Aim Trainer</h1>
+          {gameState === 'PLAYING' && (
+             <div className="flex gap-4 text-xl font-mono">
+                {config.mode === 'TIME_ATTACK' ? (
+                   <span>Time: {Math.max(0, config.duration - (Date.now() - stats.startTime)/1000).toFixed(1)}s</span>
+                ) : (
+                   <span>Time: {((Date.now() - stats.startTime)/1000).toFixed(1)}s</span>
+                )}
+                <span>Score: {stats.score}</span>
+             </div>
           )}
         </div>
-        
-        {gameState === 'running' && (
-          <div className="mt-4 text-2xl font-semibold">
-            {targetsClicked} / {TOTAL_TARGETS}
-          </div>
-        )}
+
+        <div className="flex-1 relative">
+           {gameState === 'IDLE' && (
+             <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+                <Card className="w-full max-w-2xl">
+                  <CardHeader>
+                    <CardTitle className="text-2xl text-center">Choisir un mode de jeu</CardTitle>
+                    <CardDescription className="text-center">Améliorez vos réflexes et votre précision</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs defaultValue="TIME_ATTACK" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2 mb-6">
+                        <TabsTrigger value="TIME_ATTACK" className="flex gap-2">
+                           <Clock className="w-4 h-4" /> Time Attack
+                        </TabsTrigger>
+                        <TabsTrigger value="PRECISION" className="flex gap-2">
+                           <Crosshair className="w-4 h-4" /> Precision Run
+                        </TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="TIME_ATTACK" className="space-y-4">
+                         <div className="text-center mb-6 text-muted-foreground">
+                            Touchez le maximum de cibles en 30 secondes.
+                         </div>
+                         <div className="grid grid-cols-2 gap-4 mb-6">
+                             <div className="space-y-2">
+                                <Label>Mouvement</Label>
+                                <Select onValueChange={(v) => setMovement(v as MovementType)} defaultValue="STATIC">
+                                   <SelectTrigger><SelectValue placeholder="Statique" /></SelectTrigger>
+                                   <SelectContent>
+                                      <SelectItem value="STATIC">Statique</SelectItem>
+                                      <SelectItem value="LINEAR">Linéaire</SelectItem>
+                                      <SelectItem value="BOUNCE">Rebond</SelectItem>
+                                   </SelectContent>
+                                </Select>
+                             </div>
+                             <div className="space-y-2">
+                                <Label>Disparition Auto</Label>
+                                <Select onValueChange={setAutoDismiss} defaultValue="0">
+                                   <SelectTrigger><SelectValue placeholder="Jamais" /></SelectTrigger>
+                                   <SelectContent>
+                                      <SelectItem value="0">Jamais</SelectItem>
+                                      <SelectItem value="2">2 secondes</SelectItem>
+                                      <SelectItem value="1">1 seconde</SelectItem>
+                                      <SelectItem value="0.5">0.5 seconde</SelectItem>
+                                   </SelectContent>
+                                </Select>
+                             </div>
+                         </div>
+                         <div className="flex justify-center pt-4">
+                            <Button className="w-full md:w-1/2" onClick={handleStartTimeAttack}>
+                               Démarrer Time Attack
+                            </Button>
+                         </div>
+                      </TabsContent>
+
+                      <TabsContent value="PRECISION" className="space-y-4">
+                         <div className="text-center mb-6 text-muted-foreground">
+                            Éliminez 20 cibles le plus vite possible.
+                         </div>
+                         <div className="flex justify-center">
+                            <Button className="w-full md:w-1/2" onClick={handleStartPrecision}>
+                               Démarrer Precision Run
+                            </Button>
+                         </div>
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+             </div>
+           )}
+
+           {gameState === 'FINISHED' && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/90 backdrop-blur-md">
+                 <div className="text-center space-y-6 animate-in zoom-in-50 duration-300">
+                    <h2 className="text-5xl font-black text-primary">Terminé !</h2>
+                    <div className="grid grid-cols-3 gap-8 text-center">
+                       <div>
+                          <div className="text-sm text-muted-foreground uppercase tracking-wider">Score</div>
+                          <div className="text-4xl font-bold">{stats.score}</div>
+                       </div>
+                       <div>
+                          <div className="text-sm text-muted-foreground uppercase tracking-wider">Précision</div>
+                          <div className="text-4xl font-bold">{stats.totalClicks > 0 ? Math.round((stats.score / stats.totalClicks) * 100) : 0}%</div>
+                       </div>
+                       <div>
+                          <div className="text-sm text-muted-foreground uppercase tracking-wider">Temps</div>
+                          <div className="text-4xl font-bold">{((stats.endTime - stats.startTime) / 1000).toFixed(2)}s</div>
+                       </div>
+                    </div>
+                    <Button size="lg" onClick={resetGame} className="mt-8">
+                       Rejouer
+                    </Button>
+                 </div>
+              </div>
+           )}
+
+           <div 
+             ref={containerRef}
+             className="w-full h-full bg-secondary/20 rounded-xl overflow-hidden relative cursor-crosshair border border-border/50 shadow-inner"
+             onClick={handleContainerClick}
+           >
+              {targets.map(target => (
+                 <div
+                   key={target.id}
+                   className={cn(
+                     "absolute rounded-full shadow-lg transition-transform active:scale-95",
+                     "bg-gradient-to-br from-primary to-primary/80 border-2 border-primary-foreground/20"
+                   )}
+                   style={{
+                      left: target.x,
+                      top: target.y,
+                      width: target.radius * 2,
+                      height: target.radius * 2,
+                      transform: 'translate(-50%, -50%)',
+                   }}
+                   onMouseDown={(e) => handleTargetClick(e, target.id)}
+                 />
+              ))}
+
+              {clickEffects.map(effect => (
+                <div
+                  key={effect.id}
+                  className="absolute rounded-full border-2 border-primary/50 pointer-events-none animate-ripple"
+                  style={{
+                    left: effect.x,
+                    top: effect.y,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                />
+              ))}
+           </div>
+        </div>
       </div>
     </Layout>
   );
