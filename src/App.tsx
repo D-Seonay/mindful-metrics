@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
 import ReflexTest from "./pages/ReflexTest";
 import TypingTest from "./pages/TypingTest";
 import TimePerceptionTest from "./pages/TimePerception";
@@ -19,7 +20,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/reflexes" replace />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/reflexes" element={<ReflexTest />} />
           <Route path="/typing" element={<TypingTest />} />
           <Route path="/time-perception" element={<TimePerceptionTest />} />
