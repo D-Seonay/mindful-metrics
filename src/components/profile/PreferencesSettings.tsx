@@ -4,8 +4,11 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ThemeToggle } from "@/components/ThemeToggle"; // Reusing existing component for consistency
+import { useSoundSystem } from "@/hooks/useSoundSystem";
 
 export function PreferencesSettings() {
+  const { isMuted, toggleMute } = useSoundSystem();
+
   return (
     <Card>
       <CardHeader>
@@ -46,7 +49,11 @@ export function PreferencesSettings() {
               Jouer des sons lors des interactions.
             </p>
           </div>
-          <Switch id="sound" defaultChecked />
+          <Switch 
+            id="sound" 
+            checked={!isMuted} 
+            onCheckedChange={toggleMute}
+          />
         </div>
 
         <div className="space-y-2">

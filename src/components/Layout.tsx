@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Zap, Keyboard, BarChart, Hourglass, MousePointerClick, User } from 'lucide-react';
 
 import { StreakCounter } from './StreakCounter';
+import { AudioSettings } from './AudioSettings';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -88,6 +89,7 @@ export function Layout({ children }: LayoutProps) {
           </div>
           <div className="flex items-center gap-2">
             <StreakCounter />
+            <AudioSettings />
             <ThemeToggle />
           </div>
         </nav>
