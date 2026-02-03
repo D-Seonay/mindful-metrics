@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAimGame, GameMode, MovementType } from '@/hooks/useAimGame';
+import { useSoundSystem } from '@/hooks/useSoundSystem';
+import { AudioSettings } from '@/components/AudioSettings';
 import type { PerformanceHistory, AimTrainerResult } from '@/types/history';
 import { Clock, Crosshair } from 'lucide-react';
 
@@ -22,6 +24,7 @@ export default function AimTrainer() {
   const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
   const [clickEffects, setClickEffects] = useState<{x: number, y: number, id: number}[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { playSound } = useSoundSystem();
 
   // Local state for menu configuration
   const [movement, setMovement] = useState<MovementType>('STATIC');
@@ -78,9 +81,13 @@ export default function AimTrainer() {
     }
   }, [gameState, stats, config.mode, setHistory]);
 
-  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleContainerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (gameState !== 'PLAYING') return;
     
+    // Play sounds for Miss
+    playSound('shoot');
+    playSound('miss');
+
     // Calculate relative coordinates
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -97,9 +104,13 @@ export default function AimTrainer() {
     }, 500);
   };
 
-  const handleTargetClick = (e: React.MouseEvent<HTMLDivElement>, targetId: number) => {
-    e.stopPropagation(); // Stop propagation so we don't count double clicks if logic was different, but here we invoke visual effect manually below
+  const handleTargetMouseDown = (e: React.MouseEvent<HTMLDivElement>, targetId: number) => {
+    e.stopPropagation(); // Stop bubbling to container (prevents "Miss" logic)
     
+    // Play sounds for Hit
+    playSound('shoot');
+    playSound('hit');
+
     const rect = containerRef.current?.getBoundingClientRect();
     if (rect) {
        const x = e.clientX - rect.left;
@@ -136,16 +147,19 @@ export default function AimTrainer() {
       <div className="container mx-auto px-4 py-8 h-[calc(100vh-64px)] flex flex-col">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Aim Trainer</h1>
-          {gameState === 'PLAYING' && (
-             <div className="flex gap-4 text-xl font-mono">
-                {config.mode === 'TIME_ATTACK' ? (
-                   <span>Time: {Math.max(0, config.duration - (Date.now() - stats.startTime)/1000).toFixed(1)}s</span>
-                ) : (
-                   <span>Time: {((Date.now() - stats.startTime)/1000).toFixed(1)}s</span>
-                )}
-                <span>Score: {stats.score}</span>
-             </div>
-          )}
+          <div className="flex items-center gap-4">
+             {gameState === 'PLAYING' && (
+                <div className="flex gap-4 text-xl font-mono mr-4">
+                   {config.mode === 'TIME_ATTACK' ? (
+                      <span>Time: {Math.max(0, config.duration - (Date.now() - stats.startTime)/1000).toFixed(1)}s</span>
+                   ) : (
+                      <span>Time: {((Date.now() - stats.startTime)/1000).toFixed(1)}s</span>
+                   )}
+                   <span>Score: {stats.score}</span>
+                </div>
+             )}
+             <AudioSettings />
+          </div>
         </div>
 
         <div className="flex-1 relative">
@@ -247,7 +261,7 @@ export default function AimTrainer() {
            <div 
              ref={containerRef}
              className="w-full h-full bg-secondary/20 rounded-xl overflow-hidden relative cursor-crosshair border border-border/50 shadow-inner"
-             onClick={handleContainerClick}
+             onMouseDown={handleContainerMouseDown}
            >
               {targets.map(target => (
                  <div
@@ -263,7 +277,7 @@ export default function AimTrainer() {
                       height: target.radius * 2,
                       transform: 'translate(-50%, -50%)',
                    }}
-                   onMouseDown={(e) => handleTargetClick(e, target.id)}
+                   onMouseDown={(e) => handleTargetMouseDown(e, target.id)}
                  />
               ))}
 
