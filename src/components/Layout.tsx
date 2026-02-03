@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/utils';
-import { Zap, Keyboard, BarChart, Hourglass, MousePointerClick } from 'lucide-react';
+import { Zap, Keyboard, BarChart, Hourglass, MousePointerClick, User } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -82,6 +82,20 @@ export function Layout({ children }: LayoutProps) {
             >
               <MousePointerClick className="h-4 w-4" />
               <span>Aim Trainer</span>
+            </NavLink>
+            <NavLink
+              to="/profile"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                  isActive
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                )
+              }
+            >
+              <User className="h-4 w-4" />
+              <span>Profil</span>
             </NavLink>
           </div>
           <ThemeToggle />
