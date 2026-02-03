@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import type { PerformanceHistory } from "@/types/history";
-import { Zap, Keyboard, Hourglass, MousePointerClick, Trophy } from "lucide-react";
+import type { PerformanceHistory, ReflexResult, TypingResult, TimePerceptionResult, AimTrainerResult } from "@/types/history";
+import { Zap, Keyboard, Hourglass, MousePointerClick } from "lucide-react";
+import { StatsDetailDialog } from "./StatsDetailDialog";
 
 const initialHistory: PerformanceHistory = {
   reflex: [],
@@ -51,9 +52,17 @@ export function StatsOverview() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{getBestReflex()}</div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground mb-4">
             {history.reflex?.length || 0} tests effectués
           </p>
+          <StatsDetailDialog<ReflexResult>
+            title="Historique Réflexes"
+            description="Vos derniers temps de réaction."
+            data={history.reflex || []}
+            columns={[
+              { header: "Temps", accessor: (item) => <span className="font-mono">{item.time} ms</span> },
+            ]}
+          />
         </CardContent>
       </Card>
       
@@ -66,9 +75,18 @@ export function StatsOverview() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{getBestTyping()}</div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground mb-4">
              {history.typing?.length || 0} tests effectués
           </p>
+          <StatsDetailDialog<TypingResult>
+            title="Historique Frappe"
+            description="Vos performances de dactylographie."
+            data={history.typing || []}
+            columns={[
+              { header: "Vitesse", accessor: (item) => <span className="font-bold text-green-600">{item.wpm} WPM</span> },
+              { header: "Précision", accessor: (item) => `${item.accuracy}%` },
+            ]}
+          />
         </CardContent>
       </Card>
 
@@ -81,9 +99,18 @@ export function StatsOverview() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{getBestTimePerception()}</div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground mb-4">
              {history.timePerception?.length || 0} tests effectués
           </p>
+          <StatsDetailDialog<TimePerceptionResult>
+             title="Historique Perception Temps"
+             description="Votre capacité à estimer le temps."
+             data={history.timePerception || []}
+             columns={[
+               { header: "Cible", accessor: (item) => `${item.time}s` },
+               { header: "Différence", accessor: (item) => <span className={item.difference > 0 ? "text-red-500" : "text-blue-500"}>{item.difference > 0 ? "+" : ""}{item.difference.toFixed(3)}s</span> },
+             ]}
+          />
         </CardContent>
       </Card>
 
@@ -96,9 +123,18 @@ export function StatsOverview() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{getBestAim()}</div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground mb-4">
              {history.aimTrainer?.length || 0} tests effectués
           </p>
+          <StatsDetailDialog<AimTrainerResult>
+            title="Historique Aim Trainer"
+            description="Vos sessions d'entraînement à la visée."
+            data={history.aimTrainer || []}
+            columns={[
+              { header: "Moyenne/Cible", accessor: (item) => `${item.averageTimePerTarget} ms` },
+              { header: "Temps Total", accessor: (item) => `${(item.totalTime / 1000).toFixed(1)}s` },
+            ]}
+          />
         </CardContent>
       </Card>
     </div>
