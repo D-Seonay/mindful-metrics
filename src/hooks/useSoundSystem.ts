@@ -15,7 +15,7 @@ export function useSoundSystem() {
     audioEngine.toggleMute(isMuted);
   }, [isMuted]);
 
-  const playSound = useCallback((type: 'shoot' | 'hit' | 'miss' | 'type') => {
+  const playSound = useCallback((type: 'shoot' | 'hit' | 'miss' | 'type' | 'error') => {
     // Attempt to resume context on every interaction (safest way to handle autoplay policy)
     audioEngine.resume();
     audioEngine.play(type);

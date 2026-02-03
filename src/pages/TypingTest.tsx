@@ -130,9 +130,17 @@ export default function TypingTest() {
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
-    // Play type sound on every character added
+    // Play sound on input
     if (value.length > userInput.length) {
-       playSound('type');
+       const charIndex = value.length - 1;
+       const typedChar = value[charIndex];
+       const expectedChar = text[charIndex];
+
+       if (typedChar !== expectedChar) {
+          playSound('error');
+       } else {
+          playSound('type');
+       }
     }
 
     if (gameState === 'idle' && value.length > 0) {
@@ -144,7 +152,7 @@ export default function TypingTest() {
     if (gameState !== 'finished') {
       setUserInput(value);
     }
-  }, [gameState, startTimer, userInput.length, playSound]);
+  }, [gameState, startTimer, userInput.length, playSound, text]);
 
   const finishGame = useCallback(() => {
     stopTimer();
