@@ -51,8 +51,17 @@ export default function AimTrainer() {
 
     const newTargetsClicked = targetsClicked + 1;
 
-    // Add ripple effect
-    const newEffect: ClickEffect = { x: e.clientX, y: e.clientY, id: Date.now() };
+    // Add ripple effect with corrected coordinates relative to the game container
+    let effectX = e.clientX;
+    let effectY = e.clientY;
+
+    if (gameAreaRef.current) {
+        const rect = gameAreaRef.current.getBoundingClientRect();
+        effectX = e.clientX - rect.left;
+        effectY = e.clientY - rect.top;
+    }
+
+    const newEffect: ClickEffect = { x: effectX, y: effectY, id: Date.now() };
     setClickEffects(prev => [...prev, newEffect]);
     setTimeout(() => {
       setClickEffects(prev => prev.filter(effect => effect.id !== newEffect.id));
