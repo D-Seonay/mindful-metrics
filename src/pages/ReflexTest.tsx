@@ -168,7 +168,7 @@ export default function ReflexTest() {
               >
                 <span
                   className={cn(
-                    "text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight",
+                    "text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-center",
                     (gameState === 'result' || gameState === 'finished') && "result-display animate-pulse-subtle",
                     gameState === 'waiting' ? "text-warning-foreground" : "",
                     gameState === 'ready' ? "text-success-foreground" : "",
