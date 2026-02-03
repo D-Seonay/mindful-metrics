@@ -35,7 +35,7 @@ export function HeroSection() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in [animation-delay:600ms]">
           <Button 
             size="lg" 
-            className="w-full sm:w-auto text-lg px-8 py-6 bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] border-0"
+            className="w-full sm:w-auto text-lg px-8 py-6 bg-blue-600 hover:bg-blue-800 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] border-0"
             onClick={() => navigate('/reflexes')}
           >
             Start Measuring
@@ -45,7 +45,7 @@ export function HeroSection() {
           <Button 
             variant="outline" 
             size="lg"
-            className="w-full sm:w-auto text-lg px-8 py-6 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
+            className="w-full sm:w-auto text-lg px-8 py-6 bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-900 hover:text-white"
             onClick={() => navigate('/profile')}
           >
             View Dashboard
