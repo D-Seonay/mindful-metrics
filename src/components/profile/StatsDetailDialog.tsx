@@ -25,11 +25,17 @@ interface Column<T> {
   accessor: (item: T) => React.ReactNode;
 }
 
+interface StatItem {
+  label: string;
+  value: string;
+}
+
 interface StatsDetailDialogProps<T> {
   title: string;
   description?: string;
   data: T[];
   columns: Column<T>[];
+  stats?: StatItem[];
 }
 
 export function StatsDetailDialog<T extends { id: string; date: string }>({
@@ -37,6 +43,7 @@ export function StatsDetailDialog<T extends { id: string; date: string }>({
   description,
   data,
   columns,
+  stats,
 }: StatsDetailDialogProps<T>) {
   return (
     <Dialog>
@@ -51,6 +58,20 @@ export function StatsDetailDialog<T extends { id: string; date: string }>({
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
+        
+        {stats && stats.length > 0 && (
+          <div className="grid grid-cols-2 gap-4 py-4">
+            {stats.map((stat, index) => (
+              <div key={index} className="flex flex-col p-3 bg-muted rounded-lg">
+                <span className="text-xs font-medium text-muted-foreground uppercase">
+                  {stat.label}
+                </span>
+                <span className="text-2xl font-bold">{stat.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="flex-1 overflow-hidden mt-4">
             <ScrollArea className="h-[50vh]">
                 <Table>

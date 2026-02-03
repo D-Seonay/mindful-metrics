@@ -42,20 +42,6 @@ export function Layout({ children }: LayoutProps) {
               <span>Vitesse de Frappe</span>
             </NavLink>
             <NavLink
-              to="/performance"
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                  isActive
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                )
-              }
-            >
-              <BarChart className="h-4 w-4" />
-              <span>Performance</span>
-            </NavLink>
-            <NavLink
               to="/time-perception"
               className={({ isActive }) =>
                 cn(
