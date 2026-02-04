@@ -58,7 +58,7 @@ export function ActivityHeatmap() {
     <Card className="col-span-full">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <CardTitle className="text-sm md:text-base font-semibold flex items-center gap-2">
                 <Activity className="h-4 w-4" />
                 Activité (Derniers 365 jours)
             </CardTitle>
