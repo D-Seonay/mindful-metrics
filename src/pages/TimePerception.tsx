@@ -73,7 +73,7 @@ export default function TimePerceptionTest() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full">
           {gameState === 'result' ? (
              <div className="text-center animate-fade-in">
-               <h2 className="text-8xl font-bold tracking-tighter">{result.toFixed(2)}s</h2>
+               <h2 className="text-5xl md:text-8xl font-bold tracking-tighter">{result.toFixed(2)}s</h2>
                <p className="text-3xl text-muted-foreground font-light">
                  ({difference > 0 ? '+' : ''}{difference.toFixed(2)}s)
                </p>
@@ -84,7 +84,7 @@ export default function TimePerceptionTest() {
               <button 
                 onClick={handleClick}
                 className={cn(
-                  "relative w-48 h-48 rounded-full transition-all duration-500 ease-in-out",
+                  "relative w-32 h-32 md:w-48 md:h-48 rounded-full transition-all duration-500 ease-in-out",
                   "flex items-center justify-center",
                   "bg-sage-300",
                   "text-2xl font-semibold text-sage-800",
@@ -92,7 +92,7 @@ export default function TimePerceptionTest() {
                 )}
               >
                 {gameState === 'idle' && 'Start'}
-                {gameState === 'running' && <Dot className="w-16 h-16" />}
+                {gameState === 'running' && <Dot className="w-10 h-10 md:w-16 md:h-16" />}
               </button>
             </div>
           )}
