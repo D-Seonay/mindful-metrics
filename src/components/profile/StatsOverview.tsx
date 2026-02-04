@@ -73,7 +73,7 @@ export function StatsOverview() {
           <Zap className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{rStats.best}</div>
+          <div className="text-xl md:text-2xl font-bold">{rStats.best}</div>
           <p className="text-xs text-muted-foreground mb-4">
             {history.reflex?.length || 0} tests effectués
           </p>
@@ -99,7 +99,7 @@ export function StatsOverview() {
           <Keyboard className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{tStats.best}</div>
+          <div className="text-xl md:text-2xl font-bold">{tStats.best}</div>
           <p className="text-xs text-muted-foreground mb-4">
              {history.typing?.length || 0} tests effectués
           </p>
@@ -127,7 +127,7 @@ export function StatsOverview() {
           <Hourglass className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{tpStats.best}</div>
+          <div className="text-xl md:text-2xl font-bold">{tpStats.best}</div>
           <p className="text-xs text-muted-foreground mb-4">
              {history.timePerception?.length || 0} tests effectués
           </p>
@@ -154,7 +154,7 @@ export function StatsOverview() {
           <MousePointerClick className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{aStats.best}</div>
+          <div className="text-xl md:text-2xl font-bold">{aStats.best}</div>
           <p className="text-xs text-muted-foreground mb-4">
              {history.aimTrainer?.length || 0} tests effectués
           </p>
