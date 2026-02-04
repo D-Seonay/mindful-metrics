@@ -74,7 +74,7 @@ export function StatsOverview() {
         </CardHeader>
         <CardContent>
           <div className="text-xl md:text-2xl font-bold">{rStats.best}</div>
-          <p className="text-xs text-muted-foreground mb-4">
+          <p className="text-xs text-muted-foreground mb-2 md:mb-4">
             {history.reflex?.length || 0} tests effectués
           </p>
           <StatsDetailDialog<ReflexResult>
@@ -100,7 +100,7 @@ export function StatsOverview() {
         </CardHeader>
         <CardContent>
           <div className="text-xl md:text-2xl font-bold">{tStats.best}</div>
-          <p className="text-xs text-muted-foreground mb-4">
+          <p className="text-xs text-muted-foreground mb-2 md:mb-4">
              {history.typing?.length || 0} tests effectués
           </p>
           <StatsDetailDialog<TypingResult>
@@ -128,7 +128,7 @@ export function StatsOverview() {
         </CardHeader>
         <CardContent>
           <div className="text-xl md:text-2xl font-bold">{tpStats.best}</div>
-          <p className="text-xs text-muted-foreground mb-4">
+          <p className="text-xs text-muted-foreground mb-2 md:mb-4">
              {history.timePerception?.length || 0} tests effectués
           </p>
           <StatsDetailDialog<TimePerceptionResult>
@@ -155,7 +155,7 @@ export function StatsOverview() {
         </CardHeader>
         <CardContent>
           <div className="text-xl md:text-2xl font-bold">{aStats.best}</div>
-          <p className="text-xs text-muted-foreground mb-4">
+          <p className="text-xs text-muted-foreground mb-2 md:mb-4">
              {history.aimTrainer?.length || 0} tests effectués
           </p>
           <StatsDetailDialog<AimTrainerResult>

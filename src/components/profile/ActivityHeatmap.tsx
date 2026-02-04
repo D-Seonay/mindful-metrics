@@ -6,21 +6,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Activity } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
 
 export function ActivityHeatmap() {
   const { history } = useDailyStreak();
+  const isMobile = useIsMobile(); // Use the hook
   
   const calendarData = useMemo(() => {
     const today = new Date();
-    // Start 365 days ago
-    const startDate = subDays(today, 364); 
+    // Start date is 364 days ago for desktop, 89 days ago (approx 3 months) for mobile
+    const daysToShow = isMobile ? 89 : 364; 
+    const startDate = subDays(today, daysToShow); 
     
     // Generate all dates
     const dates = eachDayOfInterval({ start: startDate, end: today });
 
-    // Group by weeks for the grid layout logic, or just simple list if using CSS Grid
-    // GitHub uses a column-major layout (weeks are columns).
-    // CSS Grid can handle this with `grid-flow-col` and `grid-rows-7`.
     return dates.map(date => {
       const dateKey = format(date, 'yyyy-MM-dd');
       const count = history[dateKey] || 0;
@@ -31,7 +31,7 @@ export function ActivityHeatmap() {
         level: getLevel(count)
       };
     });
-  }, [history]);
+  }, [history, isMobile]); // Add isMobile to dependencies
 
   // Determine color intensity level (0-4)
   function getLevel(count: number) {
@@ -60,7 +60,7 @@ export function ActivityHeatmap() {
         <div className="flex items-center justify-between">
             <CardTitle className="text-sm md:text-base font-semibold flex items-center gap-2">
                 <Activity className="h-4 w-4" />
-                Activité (Derniers 365 jours)
+                Activité (Derniers {isMobile ? '90' : '365'} jours)
             </CardTitle>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span>Moins</span>
@@ -78,7 +78,7 @@ export function ActivityHeatmap() {
       <CardContent>
         <div className="w-full overflow-x-auto pb-2">
            {/* GitHub-like Grid: 7 rows (days), ~52 cols (weeks). grid-flow-col fills columns first. */}
-           <div className="grid grid-rows-7 grid-flow-col gap-[3px] min-w-[700px] h-[100px]">
+           <div className={cn("grid grid-rows-7 grid-flow-col gap-[3px] h-[100px]", !isMobile && "min-w-[700px]")}>
              {calendarData.map((day) => (
                 <TooltipProvider key={day.dateString}>
                     <Tooltip delayDuration={50}>
@@ -106,3 +106,4 @@ export function ActivityHeatmap() {
     </Card>
   );
 }
+
