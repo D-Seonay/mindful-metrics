@@ -173,9 +173,9 @@ export default function ReflexTest() {
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-3">
               <div
-                onClick={handleClick}
+                onPointerDown={handleClick}
                 className={cn(
-                  "reflex-container relative rounded-2xl h-[400px] lg:h-[500px] flex flex-col items-center justify-center select-none",
+                  "reflex-container relative rounded-2xl h-[400px] lg:h-[500px] flex flex-col items-center justify-center select-none touch-none",
                   getStateStyles()
                 )}
               >

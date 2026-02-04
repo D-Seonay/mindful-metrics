@@ -80,7 +80,7 @@ export default function AimTrainer() {
     }
   }, [gameState, stats, config.mode, setHistory]);
 
-  const handleContainerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleContainerPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (gameState !== 'PLAYING') return;
     
     // Play sounds for Miss
@@ -103,7 +103,7 @@ export default function AimTrainer() {
     }, 500);
   };
 
-  const handleTargetMouseDown = (e: React.MouseEvent<HTMLDivElement>, targetId: number) => {
+  const handleTargetPointerDown = (e: React.PointerEvent<HTMLDivElement>, targetId: number) => {
     e.stopPropagation(); // Stop bubbling to container (prevents "Miss" logic)
     
     // Play sounds for Hit
@@ -258,8 +258,8 @@ export default function AimTrainer() {
 
            <div 
              ref={containerRef}
-             className="w-full h-full bg-secondary/20 rounded-xl overflow-hidden relative cursor-crosshair border border-border/50 shadow-inner"
-             onMouseDown={handleContainerMouseDown}
+             className="w-full h-full bg-secondary/20 rounded-xl overflow-hidden relative cursor-crosshair border border-border/50 shadow-inner touch-none"
+             onPointerDown={handleContainerPointerDown}
            >
               {targets.map(target => (
                  <div
@@ -275,7 +275,7 @@ export default function AimTrainer() {
                       height: target.radius * 2,
                       transform: 'translate(-50%, -50%)',
                    }}
-                   onMouseDown={(e) => handleTargetMouseDown(e, target.id)}
+                   onPointerDown={(e) => handleTargetPointerDown(e, target.id)}
                  />
               ))}
 

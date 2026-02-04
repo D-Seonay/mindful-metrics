@@ -286,7 +286,7 @@ export default function TypingTest() {
           <div className="grid lg:grid-cols-4 gap-6">
             <div className="lg:col-span-4">
               {/* Stats bar */}
-              <div className="flex items-center gap-6 mb-6 text-sm">
+              <div className="flex flex-wrap items-center gap-4 md:gap-6 mb-6 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground">{t.time}</span>
                   <span className="font-semibold tabular-nums">{formatTime(elapsedTime)}</span>
@@ -312,9 +312,9 @@ export default function TypingTest() {
 
               {gameState === 'finished' ? (
                 /* Results screen */
-                <div className="p-12 rounded-2xl bg-secondary/30 text-center result-display">
+                <div className="p-6 md:p-12 rounded-2xl bg-secondary/30 text-center result-display">
                   <div className="mb-8">
-                    <div className="text-7xl font-extrabold mb-2 animate-pulse-subtle">
+                    <div className="text-5xl md:text-7xl font-extrabold mb-2 animate-pulse-subtle">
                       {stats.wpm}
                     </div>
                     <div className="text-xl text-muted-foreground">{t.resultsTitle}</div>
@@ -334,7 +334,7 @@ export default function TypingTest() {
               ) : (
                 /* Typing area */
                 <div
-                  className="p-8 rounded-2xl bg-secondary/30 cursor-text"
+                  className="p-4 md:p-8 rounded-2xl bg-secondary/30 cursor-text"
                   onClick={() => inputRef.current?.focus()}
                 >
                   <div className="text-xl md:text-2xl leading-relaxed font-medium tracking-wide">
