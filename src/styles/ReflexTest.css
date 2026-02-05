@@ -1,0 +1,30 @@
+.reflex-container {
+  will-change: background-color;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.reflex-container.state-idle {
+  background-color: hsl(var(--accent));
+  cursor: pointer;
+}
+
+.reflex-container.state-waiting {
+  background-color: hsl(var(--warning));
+  cursor: not-allowed;
+}
+
+.reflex-container.state-ready {
+  background-color: hsl(var(--success));
+  cursor: pointer;
+  transition: none;
+}
+
+.reflex-container.state-result {
+  background-color: hsl(var(--accent));
+  cursor: pointer;
+}
+
+.reflex-container.state-finished {
+  background-color: hsl(var(--primary));
+  cursor: pointer;
+}

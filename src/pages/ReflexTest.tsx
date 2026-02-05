@@ -5,6 +5,7 @@ import { useKeyboardControls } from '@/hooks/useKeyboardControls';
 import { useSoundSystem } from '@/hooks/useSoundSystem';
 import { cn } from '@/lib/utils';
 import type { PerformanceHistory, ReflexResult } from '@/types/history';
+import '@/styles/ReflexTest.css';
 
 type GameState = 'idle' | 'waiting' | 'ready' | 'result' | 'finished';
 
@@ -29,6 +30,7 @@ export default function ReflexTest() {
   
   const startTimeRef = useRef<number>(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scheduledTimeRef = useRef<number>(0);
 
   const clearTimeout = useCallback(() => {
     if (timeoutRef.current) {
@@ -41,16 +43,14 @@ export default function ReflexTest() {
     setGameState('waiting');
     clearTimeout();
     
-    // Play start sound
     playSound('shoot');
 
     const delay = 2000 + Math.random() * 3000;
+    scheduledTimeRef.current = performance.now() + delay;
     
     timeoutRef.current = setTimeout(() => {
       setGameState('ready');
       startTimeRef.current = performance.now();
-      // Play ready sound? Maybe not, visual cue is primary for reaction time.
-      // Audio cue might be unfair if audio latency varies. Visual change is standard.
     }, delay);
   }, [clearTimeout, playSound]);
   
@@ -75,8 +75,8 @@ export default function ReflexTest() {
         break;
       case 'waiting':
         clearTimeout();
-        setGameState('idle'); // Reset to idle so user can click to start this attempt again
-        playSound('miss'); // Too early
+        setGameState('idle'); 
+        playSound('miss');
         break;
       case 'ready':
         const endTime = performance.now();
@@ -85,13 +85,18 @@ export default function ReflexTest() {
         setTestResults(prev => [...prev, time]);
         setTestCount(prev => prev + 1);
         setGameState('result');
-        playSound('hit'); // Success
+        playSound('hit');
         break;
       case 'finished':
         resetGame();
         break;
     }
   }, [gameState, startWaiting, clearTimeout, testCount, resetGame, playSound]);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    handleClick();
+  };
 
   useKeyboardControls(handleClick);
 
@@ -126,21 +131,6 @@ export default function ReflexTest() {
     return () => clearTimeout();
   }, [clearTimeout]);
 
-  const getStateStyles = () => {
-    if (gameState === 'finished') return 'bg-primary cursor-pointer';
-    
-    switch (gameState) {
-      case 'idle':
-        return 'bg-accent cursor-pointer';
-      case 'waiting':
-        return 'bg-warning cursor-not-allowed';
-      case 'ready':
-        return 'bg-success cursor-pointer';
-      case 'result':
-        return 'bg-accent cursor-pointer';
-    }
-  };
-
   const getStateText = () => {
      if (gameState === 'finished') {
       return { main: `${averageResult} ms`, sub: 'Cliquez ou appuyez pour recommencer' };
@@ -173,10 +163,10 @@ export default function ReflexTest() {
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-3">
               <div
-                onPointerDown={handleClick}
+                onPointerDown={handlePointerDown}
                 className={cn(
                   "reflex-container relative rounded-2xl h-[400px] lg:h-[500px] flex flex-col items-center justify-center select-none touch-none",
-                  getStateStyles()
+                  `state-${gameState}`
                 )}
               >
                 <span
