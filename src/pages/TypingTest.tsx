@@ -63,6 +63,8 @@ export default function TypingTest() {
 
   const [text, setText] = useState(() => getRandomText(language, includePunctuation));
   const [userInput, setUserInput] = useState('');
+  const [mistakesCount, setMistakesCount] = useState(0);
+  const [totalCharsTyped, setTotalCharsTyped] = useState(0);
   const [gameState, setGameState] = useState<GameState>('idle');
   const [startTime, setStartTime] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -74,20 +76,16 @@ export default function TypingTest() {
 
   
   const calculateStats = useCallback(() => {
-    if (userInput.length === 0) return { wpm: 0, accuracy: 100 };
-    
+    if (totalCharsTyped === 0) return { wpm: 0, accuracy: 100 };
+
     const timeInMinutes = elapsedTime / 60;
     const wordsTyped = userInput.length / 5; // Standard: 5 chars = 1 word
     const wpm = timeInMinutes > 0 ? Math.round(wordsTyped / timeInMinutes) : 0;
     
-    let correctChars = 0;
-    for (let i = 0; i < userInput.length; i++) {
-      if (userInput[i] === text[i]) correctChars++;
-    }
-    const accuracy = Math.round((correctChars / userInput.length) * 100);
+    const accuracy = Math.max(0, Math.round(((totalCharsTyped - mistakesCount) / totalCharsTyped) * 100));
     
     return { wpm, accuracy };
-  }, [userInput, text, elapsedTime]);
+  }, [userInput, elapsedTime, mistakesCount, totalCharsTyped]);
 
   const stats = calculateStats();
 
@@ -115,6 +113,8 @@ export default function TypingTest() {
     setGameState('idle');
     setStartTime(0);
     setElapsedTime(0);
+    setMistakesCount(0);
+    setTotalCharsTyped(0);
     setTimeout(() => inputRef.current?.focus(), 50);
   }, [stopTimer, language, testMode, wordsOption, includePunctuation]);
 
@@ -130,26 +130,28 @@ export default function TypingTest() {
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
-    // Play sound on input
-    if (value.length > userInput.length) {
-       const charIndex = value.length - 1;
-       const typedChar = value[charIndex];
-       const expectedChar = text[charIndex];
-
-       if (typedChar !== expectedChar) {
-          playSound('error');
-       } else {
-          playSound('type');
-       }
-    }
-
-    if (gameState === 'idle' && value.length > 0) {
-      setGameState('typing');
-      setStartTime(Date.now());
-      startTimer();
-    }
-    
     if (gameState !== 'finished') {
+      if (value.length > userInput.length) {
+        const charIndex = value.length - 1;
+        const typedChar = value[charIndex];
+        const expectedChar = text[charIndex];
+        
+        setTotalCharsTyped(prev => prev + 1);
+
+        if (typedChar !== expectedChar) {
+          setMistakesCount(prev => prev + 1);
+          playSound('error');
+        } else {
+          playSound('type');
+        }
+      }
+
+      if (gameState === 'idle' && value.length > 0) {
+        setGameState('typing');
+        setStartTime(Date.now());
+        startTimer();
+      }
+      
       setUserInput(value);
     }
   }, [gameState, startTimer, userInput.length, playSound, text]);
@@ -162,21 +164,15 @@ export default function TypingTest() {
 
   useEffect(() => {
     if (gameState === 'finished') {
-      const finalStats = {
-        wpm: elapsedTime > 0 ? Math.round((userInput.length / 5) / (elapsedTime / 60)) : 0,
-        accuracy: (() => {
-          let correct = 0;
-          for (let i = 0; i < userInput.length; i++) {
-            if (userInput[i] === text[i]) correct++;
-          }
-          return Math.round((correct / userInput.length) * 100);
-        })(),
-      };
-      
+      const finalWpm = elapsedTime > 0 ? Math.round((userInput.length / 5) / (elapsedTime / 60)) : 0;
+      const finalAccuracy = totalCharsTyped > 0 
+        ? Math.max(0, Math.round(((totalCharsTyped - mistakesCount) / totalCharsTyped) * 100))
+        : 100;
+
       const newResult: TypingResult = {
         id: crypto.randomUUID(),
-        wpm: finalStats.wpm,
-        accuracy: finalStats.accuracy,
+        wpm: finalWpm,
+        accuracy: finalAccuracy,
         date: new Date().toISOString(),
       };
       
@@ -188,7 +184,7 @@ export default function TypingTest() {
         };
       });
     }
-  }, [gameState, elapsedTime, userInput, text, setHistory]);
+  }, [gameState, elapsedTime, userInput, totalCharsTyped, mistakesCount, setHistory]);
 
   useEffect(() => {
     if (gameState === 'typing') {
