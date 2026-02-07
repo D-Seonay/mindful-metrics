@@ -6,6 +6,8 @@ import { useSoundSystem } from '@/hooks/useSoundSystem';
 import { cn } from '@/lib/utils';
 import type { PerformanceHistory, ReflexResult } from '@/types/history';
 import '@/styles/ReflexTest.css';
+import { Button } from '@/components/ui/button';
+import { SubmitScoreModal } from '@/components/SubmitScoreModal';
 
 type GameState = 'idle' | 'waiting' | 'ready' | 'result' | 'finished';
 
@@ -25,6 +27,7 @@ export default function ReflexTest() {
   const [testCount, setTestCount] = useState(0);
   const [testResults, setTestResults] = useState<number[]>([]);
   const [averageResult, setAverageResult] = useState(0);
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   
   const { playSound } = useSoundSystem();
   
@@ -62,6 +65,11 @@ export default function ReflexTest() {
     setAverageResult(0);
     playSound('shoot');
   }, [playSound]);
+
+  const handleScoreSubmit = (userName: string) => {
+    console.log(`Submitting score for ${userName}: ${averageResult}ms`);
+    // Here we will call the supabase client to submit the score
+  };
 
   const handleClick = useCallback(() => {
     switch (gameState) {
@@ -194,10 +202,23 @@ export default function ReflexTest() {
                     {stateText.sub}
                   </span>
                 )}
+                 {gameState === 'finished' && (
+                  <div className="absolute bottom-8 flex gap-4">
+                    <Button onClick={resetGame}>Restart</Button>
+                    <Button onClick={() => setIsSubmitModalOpen(true)}>Submit Score</Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
+        <SubmitScoreModal
+          isOpen={isSubmitModalOpen}
+          onClose={() => setIsSubmitModalOpen(false)}
+          onSubmit={handleScoreSubmit}
+          score={averageResult}
+          testType="reaction"
+        />
       </div>
     </Layout>
   );

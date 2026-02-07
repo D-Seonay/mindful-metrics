@@ -10,6 +10,7 @@ import TimePerceptionTest from "./pages/TimePerception";
 import AimTrainer from "./pages/AimTrainer";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import Leaderboard from "./pages/Leaderboard";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/typing" element={<TypingTest />} />
           <Route path="/time-perception" element={<TimePerceptionTest />} />
           <Route path="/aim-trainer" element={<AimTrainer />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

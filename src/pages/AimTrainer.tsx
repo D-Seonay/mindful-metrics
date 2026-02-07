@@ -11,6 +11,7 @@ import { useAimGame, GameMode, MovementType } from '@/hooks/useAimGame';
 import { useSoundSystem } from '@/hooks/useSoundSystem';
 import type { PerformanceHistory, AimTrainerResult } from '@/types/history';
 import { Clock, Crosshair } from 'lucide-react';
+import { SubmitScoreModal } from '@/components/SubmitScoreModal';
 
 const initialHistory: PerformanceHistory = {
   reflex: [],
@@ -24,6 +25,7 @@ export default function AimTrainer() {
   const [clickEffects, setClickEffects] = useState<{x: number, y: number, id: number}[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const { playSound } = useSoundSystem();
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
   // Local state for menu configuration
   const [movement, setMovement] = useState<MovementType>('STATIC');
@@ -141,6 +143,13 @@ export default function AimTrainer() {
       });
   };
 
+  const handleScoreSubmit = (userName: string) => {
+    const duration = stats.endTime - stats.startTime;
+    const accuracy = stats.totalClicks > 0 ? Math.round((stats.score / stats.totalClicks) * 100) : 0;
+    console.log(`Submitting score for ${userName}: ${stats.score} with ${accuracy}% accuracy in ${duration}ms`);
+    // Here we will call the supabase client to submit the score
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 h-[calc(100vh-64px)] flex flex-col">
@@ -249,9 +258,14 @@ export default function AimTrainer() {
                           <div className="text-4xl font-bold">{((stats.endTime - stats.startTime) / 1000).toFixed(2)}s</div>
                        </div>
                     </div>
-                    <Button size="lg" onClick={resetGame} className="mt-8">
-                       Rejouer
-                    </Button>
+                    <div className="flex justify-center gap-4">
+                      <Button size="lg" onClick={resetGame} className="mt-8">
+                         Rejouer
+                      </Button>
+                      <Button size="lg" onClick={() => setIsSubmitModalOpen(true)} className="mt-8">
+                         Submit Score
+                      </Button>
+                    </div>
                  </div>
               </div>
            )}
@@ -292,6 +306,13 @@ export default function AimTrainer() {
               ))}
            </div>
         </div>
+        <SubmitScoreModal
+          isOpen={isSubmitModalOpen}
+          onClose={() => setIsSubmitModalOpen(false)}
+          onSubmit={handleScoreSubmit}
+          score={stats.score}
+          testType="aim"
+        />
       </div>
     </Layout>
   );

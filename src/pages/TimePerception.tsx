@@ -6,6 +6,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useSoundSystem } from '@/hooks/useSoundSystem';
 import type { PerformanceHistory, TimePerceptionResult } from '@/types/history';
 import { Button } from '@/components/ui/button';
+import { SubmitScoreModal } from '@/components/SubmitScoreModal';
 
 type GameState = 'idle' | 'running' | 'result';
 
@@ -22,6 +23,7 @@ export default function TimePerceptionTest() {
   const [result, setResult] = useState<number>(0);
   const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
   const { playSound } = useSoundSystem();
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
   const handleClick = useCallback(() => {
     if (gameState === 'idle') {
@@ -57,13 +59,9 @@ export default function TimePerceptionTest() {
 
   const difference = result - 10;
 
-  const getResultMessage = () => {
-    const diff = Math.abs(difference);
-    if (diff <= 0.1) return "Incroyable!";
-    if (diff <= 0.5) return "Excellent!";
-    if (result < 9.5) return "Un peu trop vite";
-    if (result > 10.5) return "Un peu trop lent";
-    return "Bien essayé!";
+  const handleScoreSubmit = (userName: string) => {
+    console.log(`Submitting score for ${userName}: ${result.toFixed(2)}s`);
+    // Here we will call the supabase client to submit the score
   };
 
   return (
@@ -106,10 +104,19 @@ export default function TimePerceptionTest() {
             </div>
           )}
           {gameState === 'result' && (
-            <Button onClick={handleClick} variant="ghost" className="animate-fade-in">Réessayer</Button>
+            <div className="flex justify-center gap-4 animate-fade-in">
+              <Button onClick={handleClick} variant="ghost">Réessayer</Button>
+              <Button onClick={() => setIsSubmitModalOpen(true)}>Submit Score</Button>
+            </div>
           )}
         </div>
-
+        <SubmitScoreModal
+          isOpen={isSubmitModalOpen}
+          onClose={() => setIsSubmitModalOpen(false)}
+          onSubmit={handleScoreSubmit}
+          score={result}
+          testType="memory"
+        />
       </div>
     </Layout>
   );

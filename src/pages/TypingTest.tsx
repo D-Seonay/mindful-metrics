@@ -8,6 +8,7 @@ import type { PerformanceHistory, TypingResult } from '@/types/history';
 import { RotateCcw, Timer, Pilcrow } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { SubmitScoreModal } from '@/components/SubmitScoreModal';
 
 type GameState = 'idle' | 'typing' | 'finished';
 type Language = 'fr' | 'en';
@@ -69,6 +70,7 @@ export default function TypingTest() {
   const [startTime, setStartTime] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const { playSound } = useSoundSystem();
   
   const inputRef = useRef<HTMLInputElement>(null);
@@ -223,6 +225,11 @@ export default function TypingTest() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleScoreSubmit = (userName: string) => {
+    console.log(`Submitting score for ${userName}: ${stats.wpm} WPM with ${stats.accuracy}% accuracy`);
+    // Here we will call the supabase client to submit the score
+  };
+
   const t = translations[language];
 
   return (
@@ -325,7 +332,11 @@ export default function TypingTest() {
                       <div className="text-sm text-muted-foreground">{t.resultsTime}</div>
                     </div>
                   </div>
-                  <p className="text-muted-foreground" dangerouslySetInnerHTML={{ __html: t.restartHint }}></p>
+                   <div className="flex justify-center gap-4">
+                    <Button onClick={resetGame}>Restart</Button>
+                    <Button onClick={() => setIsSubmitModalOpen(true)}>Submit Score</Button>
+                  </div>
+                  <p className="text-muted-foreground mt-4" dangerouslySetInnerHTML={{ __html: t.restartHint }}></p>
                 </div>
               ) : (
                 /* Typing area */
@@ -384,6 +395,13 @@ export default function TypingTest() {
             </div>
           </div>
         </div>
+        <SubmitScoreModal
+          isOpen={isSubmitModalOpen}
+          onClose={() => setIsSubmitModalOpen(false)}
+          onSubmit={handleScoreSubmit}
+          score={stats.wpm}
+          testType="typing"
+        />
       </div>
     </Layout>
   );
