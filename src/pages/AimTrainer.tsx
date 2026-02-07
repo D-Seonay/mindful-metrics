@@ -11,6 +11,7 @@ import { useAimGame, GameMode, MovementType } from '@/hooks/useAimGame';
 import { useSoundSystem } from '@/hooks/useSoundSystem';
 import type { PerformanceHistory, AimTrainerResult } from '@/types/history';
 import { Clock, Crosshair } from 'lucide-react';
+import { SubmitScoreModal } from '@/components/SubmitScoreModal';
 
 const initialHistory: PerformanceHistory = {
   reflex: [],
@@ -24,6 +25,9 @@ export default function AimTrainer() {
   const [clickEffects, setClickEffects] = useState<{x: number, y: number, id: number}[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const { playSound } = useSoundSystem();
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [displayElapsedTime, setDisplayElapsedTime] = useState(0); // State for displaying elapsed time
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null); // Ref for timer interval ID
 
   // Local state for menu configuration
   const [movement, setMovement] = useState<MovementType>('STATIC');
@@ -56,6 +60,36 @@ export default function AimTrainer() {
     return () => window.removeEventListener('resize', handleResize);
   }, [setGameArea]);
 
+  // Effect to manage the display timer
+  useEffect(() => {
+    if (gameState === 'PLAYING' && stats.startTime > 0) {
+      // Clear any existing interval to prevent double timers
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+      
+      const interval = setInterval(() => {
+        setDisplayElapsedTime((performance.now() - stats.startTime) / 1000);
+      }, 10); // Update every 10ms for high precision
+      timerIntervalRef.current = interval;
+    } else {
+      // Clear interval when not playing or before game starts
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+      setDisplayElapsedTime(0); // Reset display time
+    }
+
+    return () => {
+      // Cleanup on unmount
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, [gameState, stats.startTime]); // Depend on gameState and stats.startTime
+
   // Save history when game finishes
   useEffect(() => {
     if (gameState === 'FINISHED') {
@@ -79,6 +113,7 @@ export default function AimTrainer() {
       }));
     }
   }, [gameState, stats, config.mode, setHistory]);
+
 
   const handleContainerPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (gameState !== 'PLAYING') return;
@@ -141,6 +176,17 @@ export default function AimTrainer() {
       });
   };
 
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    const secondsFormatted = Math.floor(remainingSeconds);
+    const millisecondsFormatted = Math.floor((remainingSeconds - secondsFormatted) * 100)
+      .toString()
+      .padStart(2, '0');
+    
+    return `${minutes.toString().padStart(2, '0')}:${secondsFormatted.toString().padStart(2, '0')}.${millisecondsFormatted}`;
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 h-[calc(100vh-64px)] flex flex-col">
@@ -150,9 +196,9 @@ export default function AimTrainer() {
              {gameState === 'PLAYING' && (
                 <div className="flex gap-4 text-xl font-mono mr-4">
                    {config.mode === 'TIME_ATTACK' ? (
-                      <span>Time: {Math.max(0, config.duration - (Date.now() - stats.startTime)/1000).toFixed(1)}s</span>
+                      <span>Time: {formatTime(Math.max(0, config.duration - displayElapsedTime))}</span>
                    ) : (
-                      <span>Time: {((Date.now() - stats.startTime)/1000).toFixed(1)}s</span>
+                      <span>Time: {formatTime(displayElapsedTime)}</span>
                    )}
                    <span>Score: {stats.score}</span>
                 </div>

@@ -89,19 +89,12 @@ export function useAimGame() {
   const startGame = useCallback((newConfig: Partial<GameConfig>) => {
     setConfig(prev => ({ ...prev, ...newConfig }));
     setTargets([]);
-    setStats({ score: 0, totalClicks: 0, startTime: performance.now(), endTime: 0 });
+    setStats({ score: 0, totalClicks: 0, startTime: 0, endTime: 0 }); // startTime initialized to 0
     setElapsedTime(0);
     setGameState('PLAYING');
     
     // Reset loop vars
-    previousTimeRef.current = performance.now();
-    
-    // Initial spawn
-    // We spawn inside the loop or immediately? 
-    // Let's rely on the loop to maintain target count or specific logic.
-    // For now, let's spawn one immediately.
-    // Actually, create a separate 'reset' state for spawning.
-    // For simplicity, we'll set a flag to spawn initial targets in the first frame.
+    previousTimeRef.current = undefined; // Reset previousTimeRef to ensure accurate deltaTime on first frame
   }, []);
 
   const stopGame = useCallback(() => {
@@ -120,18 +113,30 @@ export function useAimGame() {
   const clickTarget = useCallback((targetId: number) => {
     if (gameState !== 'PLAYING') return;
 
-    setStats(prev => ({ ...prev, score: prev.score + 1, totalClicks: prev.totalClicks + 1 }));
-    setTargets(prev => prev.filter(t => t.id !== targetId));
+    setStats(prev => {
+      const newStats = { ...prev, score: prev.score + 1, totalClicks: prev.totalClicks + 1 };
+      if (newStats.startTime === 0) { // Start timer on first click
+        newStats.startTime = performance.now();
+      }
+      // Win condition for Precision
+      if (config.mode === 'PRECISION' && newStats.score >= config.targetCount) {
+        stopGame();
+      }
+      return newStats;
+    });
 
-    // Win condition for Precision
-    if (config.mode === 'PRECISION' && stats.score + 1 >= config.targetCount) {
-      stopGame();
-    }
-  }, [gameState, config.mode, config.targetCount, stats.score, stopGame]);
+    setTargets(prev => prev.filter(t => t.id !== targetId));
+  }, [gameState, config.mode, config.targetCount, stopGame]); // Removed stats.score from dependencies as it's updated within setStats
 
   const registerClick = useCallback(() => {
      if (gameState === 'PLAYING') {
-         setStats(prev => ({ ...prev, totalClicks: prev.totalClicks + 1 }));
+         setStats(prev => {
+            const newStats = { ...prev, totalClicks: prev.totalClicks + 1 };
+            if (newStats.startTime === 0) { // Start timer on first click if it's a miss
+                newStats.startTime = performance.now();
+            }
+            return newStats;
+         });
      }
   }, [gameState]);
 
@@ -144,19 +149,22 @@ export function useAimGame() {
     const deltaTime = (time - previousTimeRef.current) / 1000; // seconds
     previousTimeRef.current = time;
 
-    setElapsedTime(prev => prev + deltaTime);
+    // Only update elapsed time if game has started (first target clicked)
+    if (stats.startTime > 0) {
+      setElapsedTime(prev => prev + deltaTime);
+    }
     
     const now = performance.now();
     const currentDuration = (now - stats.startTime) / 1000;
 
     // Time Attack Limit
-    if (config.mode === 'TIME_ATTACK' && currentDuration >= config.duration) {
+    if (config.mode === 'TIME_ATTACK' && stats.startTime > 0 && currentDuration >= config.duration) {
       stopGame();
       return;
     }
 
     setTargets(prevTargets => {
-      let nextTargets = prevTargets.map(t => {
+      const nextTargets = prevTargets.map(t => {
         // Lifespan check
         if (t.lifespan > 0 && now - t.createdAt > t.lifespan) {
           return null;
@@ -165,7 +173,7 @@ export function useAimGame() {
         // Movement
         if (config.movement === 'STATIC') return t;
 
-        let { x, y, vx, vy, radius } = t;
+        const { x, y, vx, vy, radius } = t;
         const { width, height } = gameAreaRef.current;
 
         x += vx * deltaTime;
