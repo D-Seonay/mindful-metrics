@@ -179,8 +179,9 @@ export function useAimGame() {
         x += vx * deltaTime;
         y += vy * deltaTime;
 
-        // Bounce Logic
+        // Movement logic
         if (config.movement === 'BOUNCE') {
+          // Explicit bounce logic
           if (x - radius <= 0) {
             x = radius;
             vx = -vx;
@@ -196,26 +197,20 @@ export function useAimGame() {
             y = height - radius;
             vy = -vy;
           }
-        } 
-        // Linear Logic (Wrap around? Or disappear? Or Bounce off walls?)
-        // Let's just bounce for Linear too if it hits edge, or strictly stick to "MovementType"
-        // If movement is just LINEAR, maybe it goes off screen?
-        // For gameplay, bouncing is usually better than losing targets offscreen.
-        // Let's make LINEAR behave like bouncing for now to keep them on screen, 
-        // or rename 'LINEAR' to 'DRIFT' which might go off screen. 
-        // The prompt asked for "Linear, Random, or Bouncing". 
-        // Let's implement Linear as "Move in a straight line, bounce on edge". 
-        // "Random" could be "Change direction randomly".
-
-        if (config.movement === 'LINEAR' || config.movement === 'BOUNCE') {
-             // Basic boundary check to keep them in bounds
-             if (x - radius <= 0 || x + radius >= width) vx = -vx;
-             if (y - radius <= 0 || y + radius >= height) vy = -vy;
-             
-             // Clamp
-             x = Math.max(radius, Math.min(x, width - radius));
-             y = Math.max(radius, Math.min(y, height - radius));
+        } else if (config.movement === 'LINEAR') {
+          // Basic boundary check for LINEAR movement to make it bounce off walls
+          // This prevents objects from flying off-screen.
+          if (x - radius <= 0 || x + radius >= width) {
+            vx = -vx;
+          }
+          if (y - radius <= 0 || y + radius >= height) {
+            vy = -vy;
+          }
         }
+
+        // Clamp position to ensure it stays within bounds after any movement or bounce
+        x = Math.max(radius, Math.min(x, width - radius));
+        y = Math.max(radius, Math.min(y, height - radius));
 
         return { ...t, x, y, vx, vy };
       }).filter(Boolean) as Target[];
