@@ -66,6 +66,7 @@ export default function TypingTest() {
   const [mistakesCount, setMistakesCount] = useState(0);
   const [totalCharsTyped, setTotalCharsTyped] = useState(0);
   const [gameState, setGameState] = useState<GameState>('idle');
+  const [isTestStarted, setIsTestStarted] = useState(false);
   const [startTime, setStartTime] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
@@ -90,9 +91,12 @@ export default function TypingTest() {
   const stats = calculateStats();
 
   const startTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
     timerRef.current = setInterval(() => {
-      setElapsedTime(prev => prev + 0.1);
-    }, 100);
+      setElapsedTime(prev => prev + 0.01); // Update every 10ms for higher precision
+    }, 10);
   }, []);
 
   const stopTimer = useCallback(() => {
@@ -115,6 +119,7 @@ export default function TypingTest() {
     setElapsedTime(0);
     setMistakesCount(0);
     setTotalCharsTyped(0);
+    setIsTestStarted(false); // Reset isTestStarted
     setTimeout(() => inputRef.current?.focus(), 50);
   }, [stopTimer, language, testMode, wordsOption, includePunctuation]);
 
@@ -125,41 +130,53 @@ export default function TypingTest() {
   
   useEffect(() => {
     resetGame();
-  }, [testMode, timeOption, wordsOption, language, includePunctuation]);
+  }, [testMode, timeOption, wordsOption, language, includePunctuation, resetGame]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
     if (gameState !== 'finished') {
-      if (value.length > userInput.length) {
-        const charIndex = value.length - 1;
-        const typedChar = value[charIndex];
-        const expectedChar = text[charIndex];
-        
-        setTotalCharsTyped(prev => prev + 1);
-
-        if (typedChar !== expectedChar) {
-          setMistakesCount(prev => prev + 1);
-          playSound('error');
-        } else {
-          playSound('type');
-        }
-      }
-
-      if (gameState === 'idle' && value.length > 0) {
-        setGameState('typing');
+      // Start timer on first character typed
+      if (!isTestStarted && value.length > 0) {
+        setIsTestStarted(true);
         setStartTime(Date.now());
         startTimer();
       }
+
+      // Prevent processing if no input or test not started
+      if (!isTestStarted && value.length === 0) {
+        setUserInput('');
+        return;
+      }
       
+      // Process character input only if test has started
+      if (isTestStarted) {
+        if (value.length > userInput.length) { // Character added
+          const charIndex = value.length - 1;
+          const typedChar = value[charIndex];
+          const expectedChar = text[charIndex];
+          
+          setTotalCharsTyped(prev => prev + 1);
+
+          if (typedChar !== expectedChar) {
+            setMistakesCount(prev => prev + 1);
+            playSound('error');
+          } else {
+            playSound('type');
+          }
+        }
+        setGameState('typing'); // Ensure game state is typing once started
+      }
+
       setUserInput(value);
     }
-  }, [gameState, startTimer, userInput.length, playSound, text]);
+  }, [gameState, isTestStarted, startTimer, userInput.length, playSound, text]);
 
   const finishGame = useCallback(() => {
     stopTimer();
     setGameState('finished');
     playSound('hit');
+    setIsTestStarted(false); // Ensure isTestStarted is reset when game finishes
   }, [stopTimer, playSound]);
 
   useEffect(() => {
@@ -191,11 +208,13 @@ export default function TypingTest() {
       if (testMode === 'time' && elapsedTime >= timeOption) {
         finishGame();
       }
-      if (testMode === 'words' && userInput.length >= text.length) {
+      // For word mode, we finish when userInput matches text length and all typed are correct
+      // Or if the user typed more than the expected text length
+      if (testMode === 'words' && (userInput.length >= text.length && mistakesCount === 0 || userInput.length > text.length)) {
         finishGame();
       }
     }
-  }, [gameState, elapsedTime, userInput, text, testMode, timeOption, finishGame]);
+  }, [gameState, elapsedTime, userInput, text, testMode, timeOption, finishGame, mistakesCount]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Tab' && gameState === 'finished') {
@@ -218,9 +237,14 @@ export default function TypingTest() {
   }, [stopTimer]);
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    const secondsFormatted = Math.floor(remainingSeconds);
+    const millisecondsFormatted = Math.floor((remainingSeconds - secondsFormatted) * 100)
+      .toString()
+      .padStart(2, '0');
+    
+    return `${minutes.toString().padStart(2, '0')}:${secondsFormatted.toString().padStart(2, '0')}.${millisecondsFormatted}`;
   };
 
   const t = translations[language];
