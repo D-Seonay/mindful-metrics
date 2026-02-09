@@ -45,6 +45,7 @@ const ColorSensitivityTest: React.FC = () => {
   const [gameResult, setGameResult] = useState(0);
   const [boardShake, setBoardShake] = useState(false);
   const [isPulsing, setIsPulsing] = useState(false);
+  const [wrongClickIndex, setWrongClickIndex] = useState<number | null>(null); // New state for wrong click feedback
 
   const [difficulty, setDifficulty] = useState<Difficulty>("normal"); // New state for difficulty
   const [lives, setLives] = useState(0); // New state for lives in Easy mode
@@ -191,9 +192,12 @@ const ColorSensitivityTest: React.FC = () => {
 
         setBoardShake(true);
         setTimeout(() => setBoardShake(false), 500);
+
+        setWrongClickIndex(index); // Set the index of the incorrectly clicked square
+        setTimeout(() => setWrongClickIndex(null), 500); // Clear the wrong click feedback after animation
       }
     },
-    [oddIndex, isGameOver, isGameStarted, score, difficulty, lives, toast], // Add difficulty and lives to dependencies
+    [oddIndex, isGameOver, isGameStarted, score, difficulty, lives, toast], // Removed wrongClickIndex from dependencies
   );
 
   const renderGrid = () => {
@@ -205,13 +209,17 @@ const ColorSensitivityTest: React.FC = () => {
     for (let i = 0; i < totalSquares; i++) {
       const color = i === oddIndex ? oddColor : baseColor;
       squares.push(
-        <button
-          key={i}
-          className="aspect-square rounded-xl transition-transform duration-100 hover:scale-[0.98]"
-          style={{ backgroundColor: hslToString(color) }}
-          onClick={() => handleSquareClick(i)}
-          aria-label={`Carré de couleur ${i + 1}`}
-        />,
+                  <button
+                    key={i}
+                    className={cn(
+                      "aspect-square rounded-xl transition-transform duration-100 hover:scale-[0.98]",
+                      "border-4 border-transparent", // Default transparent border
+                      i === wrongClickIndex && "border-red-500", // Apply red border if this is the wrong clicked square
+                    )}
+                    style={{ backgroundColor: hslToString(color) }}
+                    onClick={() => handleSquareClick(i)}
+                    aria-label={`Carré de couleur ${i + 1}`}
+                  />,
       );
     }
 
@@ -283,7 +291,6 @@ const ColorSensitivityTest: React.FC = () => {
               <div
                 className={cn(
                   "relative flex items-center justify-center rounded-xl border-4 border-transparent p-2 w-full max-w-[400px] aspect-square mx-auto",
-                  boardShake && "border-red-500",
                 )}
               >
                 {renderGrid()}
