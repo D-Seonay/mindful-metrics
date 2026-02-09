@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 const INITIAL_TIME = 20; // seconds
 
@@ -29,6 +31,8 @@ const getGridDimensions = (score: number) => {
   return { rows: 2, cols: 3 }; // Default
 };
 
+type Difficulty = "facile" | "normal" | "difficile";
+
 const ColorSensitivityTest: React.FC = () => {
   const [level, setLevel] = useState(0);
   const [score, setScore] = useState(0);
@@ -40,7 +44,10 @@ const ColorSensitivityTest: React.FC = () => {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [gameResult, setGameResult] = useState(0);
   const [boardShake, setBoardShake] = useState(false);
-  const [isPulsing, setIsPulsing] = useState(false); // New state for pulse animation
+  const [isPulsing, setIsPulsing] = useState(false);
+
+  const [difficulty, setDifficulty] = useState<Difficulty>("normal"); // New state for difficulty
+  const [lives, setLives] = useState(0); // New state for lives in Easy mode
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
@@ -48,14 +55,11 @@ const ColorSensitivityTest: React.FC = () => {
   const generateLevel = useCallback(() => {
     const { rows, cols } = getGridDimensions(score);
 
-    // Generate base color
     const newBaseColor = generateRandomHSL();
     setBaseColor(newBaseColor);
 
-    // Calculate lightness delta based on score
     const lightnessDelta = getLightnessDelta(score);
 
-    // Adjust lightness for the odd color
     const lighter = Math.random() > 0.5;
     const newOddColor = adjustLightness(
       newBaseColor,
@@ -63,19 +67,25 @@ const ColorSensitivityTest: React.FC = () => {
     );
     setOddColor(newOddColor);
 
-    // Pick a random index for the odd square
     setOddIndex(Math.floor(Math.random() * rows * cols));
   }, [score]);
 
   const startGame = useCallback(() => {
-    setLevel(1); // Start at level 1
+    setLevel(1);
     setScore(0);
     setTimeLeft(INITIAL_TIME);
     setIsGameOver(false);
     setIsGameStarted(true);
     setGameResult(0);
+
+    if (difficulty === "facile") {
+      setLives(3); // 3 lives for Easy mode
+    } else {
+      setLives(0); // No lives for Normal/Hard mode (time-based or instant game over)
+    }
+
     generateLevel();
-  }, [generateLevel]);
+  }, [difficulty, generateLevel]);
 
   const resetGame = useCallback(() => {
     setIsGameStarted(false);
@@ -83,14 +93,14 @@ const ColorSensitivityTest: React.FC = () => {
     setLevel(0);
     setScore(0);
     setTimeLeft(INITIAL_TIME);
+    setLives(0); // Reset lives as well
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
   }, []);
 
-  // Timer effect
   useEffect(() => {
-    if (isGameStarted && !isGameOver) {
+    if (isGameStarted && !isGameOver && difficulty !== "facile") {
       timerRef.current = setInterval(() => {
         setTimeLeft((prevTime) => {
           if (prevTime <= 1) {
@@ -115,9 +125,8 @@ const ColorSensitivityTest: React.FC = () => {
         clearInterval(timerRef.current);
       }
     };
-  }, [isGameStarted, isGameOver, score, toast]);
+  }, [isGameStarted, isGameOver, score, difficulty, toast]); // Add difficulty to dependency array
 
-  // Generate new level when score changes (after a correct click)
   useEffect(() => {
     if (isGameStarted && !isGameOver) {
       generateLevel();
@@ -132,10 +141,10 @@ const ColorSensitivityTest: React.FC = () => {
         // Correct click
         setLevel((prevLevel) => prevLevel + 1);
         setScore((prevScore) => prevScore + 1);
-        setTimeLeft((prevTime) => prevTime + (score < 10 ? 2 : 1)); // +2s for early levels, +1s for higher
+        setTimeLeft((prevTime) => prevTime + (score < 10 ? 2 : 1));
 
         setIsPulsing(true);
-        setTimeout(() => setIsPulsing(false), 300); // Remove pulse class after animation
+        setTimeout(() => setIsPulsing(false), 300);
 
         toast({
           title: "Correct !",
@@ -143,18 +152,48 @@ const ColorSensitivityTest: React.FC = () => {
         });
       } else {
         // Wrong click
-        setTimeLeft((prevTime) => Math.max(0, prevTime - 3)); // -3 seconds penalty
+        if (difficulty === "difficile") {
+          setIsGameOver(true);
+          setGameResult(score);
+          toast({
+            title: "Partie Terminée !",
+            description: "Mode Difficile : une erreur et c'est perdu !",
+            variant: "destructive",
+          });
+        } else if (difficulty === "facile") {
+          setLives((prevLives) => prevLives - 1);
+          if (lives - 1 <= 0) {
+            setIsGameOver(true);
+            setGameResult(score);
+            toast({
+              title: "Partie Terminée !",
+              description: `Vous avez atteint le niveau ${score}.`,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Incorrect !",
+              description: `Il vous reste ${lives - 1} vies.`,
+              variant: "destructive",
+              duration: 500,
+            });
+          }
+        } else {
+          // Normal mode (time-based penalty)
+          setTimeLeft((prevTime) => Math.max(0, prevTime - 3));
+          toast({
+            title: "Incorrect !",
+            description: "-3 secondes",
+            variant: "destructive",
+            duration: 500,
+          });
+        }
+
         setBoardShake(true);
-        setTimeout(() => setBoardShake(false), 500); // Remove shake class after animation
-        toast({
-          title: "Incorrect !",
-          description: "-3 secondes",
-          variant: "destructive",
-          duration: 500,
-        });
+        setTimeout(() => setBoardShake(false), 500);
       }
     },
-    [oddIndex, isGameOver, isGameStarted, score, toast],
+    [oddIndex, isGameOver, isGameStarted, score, difficulty, lives, toast], // Add difficulty and lives to dependencies
   );
 
   const renderGrid = () => {
@@ -202,9 +241,30 @@ const ColorSensitivityTest: React.FC = () => {
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-6 p-4">
           {!isGameStarted && !isGameOver && (
-            <div className="text-center">
+            <div className="text-center space-y-4">
               <p className="mb-4 text-lg">Cliquez sur le carré qui a une nuance différente.</p>
-              <Button onClick={startGame} size="lg">
+              <div className="flex flex-col items-center space-y-2">
+                <p className="font-semibold">Choisissez la difficulté :</p>
+                <RadioGroup
+                  defaultValue={difficulty}
+                  onValueChange={(value: Difficulty) => setDifficulty(value)}
+                  className="flex space-x-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="facile" id="r1" />
+                    <Label htmlFor="r1">Facile (3 vies)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="normal" id="r2" />
+                    <Label htmlFor="r2">Normal (temps)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="difficile" id="r3" />
+                    <Label htmlFor="r3">Difficile (1 erreur)</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              <Button onClick={startGame} size="lg" className="mt-4">
                 Commencer le jeu
               </Button>
             </div>
@@ -214,12 +274,16 @@ const ColorSensitivityTest: React.FC = () => {
             <>
               <div className="flex w-full justify-between px-4 text-xl font-semibold">
                 <span>Niveau: {level}</span>
-                <span>Temps: {timeLeft}s</span>
+                {difficulty === "facile" ? (
+                  <span>Vies: {lives}</span>
+                ) : (
+                  <span>Temps: {timeLeft}s</span>
+                )}
               </div>
               <div
                 className={cn(
-                  "relative flex items-center justify-center rounded-xl border-4 border-transparent p-2 w-full max-w-[400px] aspect-square mx-auto", // Added sizing classes here
-                  boardShake && "border-red-500", // Visual feedback for wrong click
+                  "relative flex items-center justify-center rounded-xl border-4 border-transparent p-2 w-full max-w-[400px] aspect-square mx-auto",
+                  boardShake && "border-red-500",
                 )}
               >
                 {renderGrid()}
@@ -262,7 +326,7 @@ const ColorSensitivityTest: React.FC = () => {
         }
 
         @keyframes pulse-green {
-          0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } /* Tailwind green-500 */
+          0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
           70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
           100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
         }
