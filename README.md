@@ -14,6 +14,7 @@ Mindful Metrics aims to provide an intuitive and engaging platform for users to 
   - **Words**: Type a specific number of words (10, 25, 50, 100).
 - **Performance Tracking**: A dedicated page to view your history, statistics, and progress for both the reflex and typing tests.
 - **Language Selection**: The typing test supports both English and French.
+- **Color Sensitivity Test**: Test your ability to differentiate subtle color nuances with various difficulty levels.
 - **Light/Dark Mode**: The application supports both light and dark themes.
 - **Data Export**: You can save your entire performance history as a JSON file.
 
