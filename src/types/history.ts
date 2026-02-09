@@ -28,6 +28,13 @@ export interface AimTrainerResult {
   date: string; // ISO string
 }
 
+export interface ColorSensitivityResult {
+  id: string;
+  score: number; // level reached
+  difficulty: "facile" | "normal" | "difficile";
+  date: string; // ISO string
+}
+
 export type ReflexHistory = ReflexResult[];
 
 export type TypingHistory = TypingResult[];
@@ -36,9 +43,12 @@ export type TimePerceptionHistory = TimePerceptionResult[];
 
 export type AimTrainerHistory = AimTrainerResult[];
 
+export type ColorSensitivityHistory = ColorSensitivityResult[];
+
 export interface PerformanceHistory {
   reflex: ReflexHistory;
   typing: TypingHistory;
   timePerception: TimePerceptionHistory;
   aimTrainer: AimTrainerHistory;
+  colorSensitivity: ColorSensitivityHistory;
 }

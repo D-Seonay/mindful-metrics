@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import type { PerformanceHistory, ReflexResult, TypingResult, TimePerceptionResult, AimTrainerResult } from "@/types/history";
-import { Zap, Keyboard, Hourglass, MousePointerClick } from "lucide-react";
+import type { PerformanceHistory, ReflexResult, TypingResult, TimePerceptionResult, AimTrainerResult, ColorSensitivityResult } from "@/types/history";
+import { Zap, Keyboard, Hourglass, MousePointerClick, Eye } from "lucide-react";
 import { StatsDetailDialog } from "./StatsDetailDialog";
 import { ActivityHeatmap } from "./ActivityHeatmap";
 
@@ -10,10 +10,11 @@ const initialHistory: PerformanceHistory = {
   typing: [],
   timePerception: [],
   aimTrainer: [],
+  colorSensitivity: [],
 };
 
 export function StatsOverview() {
-  const [history] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
+  const [history] = useLocalStorage<PerformanceHistory>('performanceHistory', initialHistory);
 
   // --- Reflex Helpers ---
   const reflexStats = () => {
@@ -55,124 +56,164 @@ export function StatsOverview() {
       avg: `${avg.toFixed(0)} ms/cible` 
     };
   };
-
-  const rStats = reflexStats();
-  const tStats = typingStats();
-  const tpStats = timeStats();
-  const aStats = aimStats();
-
-  return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {/* Activity Heatmap */}
-      <ActivityHeatmap />
-
-      {/* Reflexes */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Réflexes (Record)</CardTitle>
-          <Zap className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-xl md:text-2xl font-bold">{rStats.best}</div>
-          <p className="text-xs text-muted-foreground mb-2 md:mb-4">
-            {history.reflex?.length || 0} tests effectués
-          </p>
-          <StatsDetailDialog<ReflexResult>
-            title="Historique Réflexes"
-            description="Vos derniers temps de réaction."
-            data={history.reflex || []}
-            stats={[
-              { label: "Meilleur Temps", value: rStats.best },
-              { label: "Temps Moyen", value: rStats.avg },
-            ]}
-            columns={[
-              { header: "Temps", accessor: (item) => <span className="font-mono">{item.time} ms</span> },
-            ]}
-          />
-        </CardContent>
-      </Card>
-      
-      {/* Typing */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Vitesse de Frappe</CardTitle>
-          <Keyboard className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-xl md:text-2xl font-bold">{tStats.best}</div>
-          <p className="text-xs text-muted-foreground mb-2 md:mb-4">
-             {history.typing?.length || 0} tests effectués
-          </p>
-          <StatsDetailDialog<TypingResult>
-            title="Historique Frappe"
-            description="Vos performances de dactylographie."
-            data={history.typing || []}
-            stats={[
-              { label: "Meilleur Score", value: tStats.best },
-              { label: "Vitesse Moyenne", value: tStats.avgWpm },
-              { label: "Précision Moyenne", value: tStats.avgAcc },
-            ]}
-            columns={[
-              { header: "Vitesse", accessor: (item) => <span className="font-bold text-green-600">{item.wpm} WPM</span> },
-              { header: "Précision", accessor: (item) => `${item.accuracy}%` },
-            ]}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Time Perception */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Perception Temps</CardTitle>
-          <Hourglass className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-xl md:text-2xl font-bold">{tpStats.best}</div>
-          <p className="text-xs text-muted-foreground mb-2 md:mb-4">
-             {history.timePerception?.length || 0} tests effectués
-          </p>
-          <StatsDetailDialog<TimePerceptionResult>
-             title="Historique Perception Temps"
-             description="Votre capacité à estimer le temps."
-             data={history.timePerception || []}
-             stats={[
-               { label: "Meilleure Diff", value: tpStats.best },
-               { label: "Différence Moyenne", value: tpStats.avgDiff },
-             ]}
-             columns={[
-               { header: "Cible", accessor: (item) => `${item.time}s` },
-               { header: "Différence", accessor: (item) => <span className={item.difference > 0 ? "text-red-500" : "text-blue-500"}>{item.difference > 0 ? "+" : ""}{item.difference.toFixed(3)}s</span> },
-             ]}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Aim Trainer */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Aim Trainer</CardTitle>
-          <MousePointerClick className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-xl md:text-2xl font-bold">{aStats.best}</div>
-          <p className="text-xs text-muted-foreground mb-2 md:mb-4">
-             {history.aimTrainer?.length || 0} tests effectués
-          </p>
-          <StatsDetailDialog<AimTrainerResult>
-            title="Historique Aim Trainer"
-            description="Vos sessions d'entraînement à la visée."
-            data={history.aimTrainer || []}
-            stats={[
-              { label: "Record (Moy/Cible)", value: aStats.best },
-              { label: "Moyenne Globale", value: aStats.avg },
-            ]}
-            columns={[
-              { header: "Moyenne/Cible", accessor: (item) => `${item.averageTimePerTarget.toFixed(0)} ms` },
-              { header: "Temps Total", accessor: (item) => `${(item.totalTime / 1000).toFixed(1)}s` },
-            ]}
-          />
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+  
+    // --- Color Sensitivity Helpers ---
+    const colorSensitivityStats = () => {
+      if (!history.colorSensitivity?.length) return { best: "-", avg: "-" };
+      const best = Math.max(...history.colorSensitivity.map(r => r.score));
+      const avg = Math.round(history.colorSensitivity.reduce((a, b) => a + b.score, 0) / history.colorSensitivity.length);
+      return {
+        best: `${best} niveaux`,
+        avg: `${avg} niveaux`,
+      };
+    };
+  
+    const rStats = reflexStats();
+    const tStats = typingStats();
+    const tpStats = timeStats();
+    const aStats = aimStats();
+    const csStats = colorSensitivityStats();
+  
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Activity Heatmap */}
+        <ActivityHeatmap />
+  
+        {/* Reflexes */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Réflexes (Record)</CardTitle>
+            <Zap className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl md:text-2xl font-bold">{rStats.best}</div>
+            <p className="text-xs text-muted-foreground mb-2 md:mb-4">
+              {history.reflex?.length || 0} tests effectués
+            </p>
+            <StatsDetailDialog<ReflexResult>
+              title="Historique Réflexes"
+              description="Vos derniers temps de réaction."
+              data={history.reflex || []}
+              stats={[
+                { label: "Meilleur Temps", value: rStats.best },
+                { label: "Temps Moyen", value: rStats.avg },
+              ]}
+              columns={[
+                { header: "Temps", accessor: (item) => <span className="font-mono">{item.time} ms</span> },
+              ]}
+            />
+          </CardContent>
+        </Card>
+        
+        {/* Typing */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Vitesse de Frappe</CardTitle>
+            <Keyboard className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl md:text-2xl font-bold">{tStats.best}</div>
+            <p className="text-xs text-muted-foreground mb-2 md:mb-4">
+               {history.typing?.length || 0} tests effectués
+            </p>
+            <StatsDetailDialog<TypingResult>
+              title="Historique Frappe"
+              description="Vos performances de dactylographie."
+              data={history.typing || []}
+              stats={[
+                { label: "Meilleur Score", value: tStats.best },
+                { label: "Vitesse Moyenne", value: tStats.avgWpm },
+                { label: "Précision Moyenne", value: tStats.avgAcc },
+              ]}
+              columns={[
+                { header: "Vitesse", accessor: (item) => <span className="font-bold text-green-600">{item.wpm} WPM</span> },
+                { header: "Précision", accessor: (item) => `${item.accuracy}%` },
+              ]}
+            />
+          </CardContent>
+        </Card>
+  
+        {/* Time Perception */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Perception Temps</CardTitle>
+            <Hourglass className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl md:text-2xl font-bold">{tpStats.best}</div>
+            <p className="text-xs text-muted-foreground mb-2 md:mb-4">
+               {history.timePerception?.length || 0} tests effectués
+            </p>
+            <StatsDetailDialog<TimePerceptionResult>
+               title="Historique Perception Temps"
+               description="Votre capacité à estimer le temps."
+               data={history.timePerception || []}
+               stats={[
+                 { label: "Meilleure Diff", value: tpStats.best },
+                 { label: "Différence Moyenne", value: tpStats.avgDiff },
+               ]}
+               columns={[
+                 { header: "Cible", accessor: (item) => `${item.time}s` },
+                 { header: "Différence", accessor: (item) => <span className={item.difference > 0 ? "text-red-500" : "text-blue-500"}>{item.difference > 0 ? "+" : ""}{item.difference.toFixed(3)}s</span> },
+               ]}
+            />
+          </CardContent>
+        </Card>
+  
+        {/* Aim Trainer */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Aim Trainer</CardTitle>
+            <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl md:text-2xl font-bold">{aStats.best}</div>
+            <p className="text-xs text-muted-foreground mb-2 md:mb-4">
+               {history.aimTrainer?.length || 0} tests effectués
+            </p>
+            <StatsDetailDialog<AimTrainerResult>
+              title="Historique Aim Trainer"
+              description="Vos sessions d'entraînement à la visée."
+              data={history.aimTrainer || []}
+              stats={[
+                { label: "Record (Moy/Cible)", value: aStats.best },
+                { label: "Moyenne Globale", value: aStats.avg },
+              ]}
+              columns={[
+                { header: "Moyenne/Cible", accessor: (item) => `${item.averageTimePerTarget.toFixed(0)} ms` },
+                { header: "Temps Total", accessor: (item) => `${(item.totalTime / 1000).toFixed(1)}s` },
+              ]}
+            />
+          </CardContent>
+        </Card>
+  
+        {/* Color Sensitivity */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Sensibilité Couleurs</CardTitle>
+            <Eye className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl md:text-2xl font-bold">{csStats.best}</div>
+            <p className="text-xs text-muted-foreground mb-2 md:mb-4">
+               {history.colorSensitivity?.length || 0} tests effectués
+            </p>
+            <StatsDetailDialog<ColorSensitivityResult>
+              title="Historique Sensibilité Couleurs"
+              description="Votre capacité à différencier les nuances."
+              data={history.colorSensitivity || []}
+              stats={[
+                { label: "Meilleur Niveau", value: csStats.best },
+                { label: "Niveau Moyen", value: csStats.avg },
+              ]}
+              columns={[
+                { header: "Niveau", accessor: (item) => <span className="font-bold">{item.score}</span> },
+                { header: "Difficulté", accessor: (item) => item.difficulty },
+                { header: "Date", accessor: (item) => new Date(item.date).toLocaleDateString() },
+              ]}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }

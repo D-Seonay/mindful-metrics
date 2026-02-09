@@ -12,6 +12,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { PerformanceHistory, ColorSensitivityResult } from "@/types/history";
 
 const INITIAL_TIME = 20; // seconds
 
@@ -52,6 +54,33 @@ const ColorSensitivityTest: React.FC = () => {
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+
+  const [performanceHistory, setPerformanceHistory] = useLocalStorage<PerformanceHistory>(
+    "performanceHistory",
+    {
+      reflex: [],
+      typing: [],
+      timePerception: [],
+      aimTrainer: [],
+      colorSensitivity: [], // Initialize new field
+    },
+  );
+
+  // Effect to save game results
+  useEffect(() => {
+    if (isGameOver && gameResult > 0) {
+      const newResult: ColorSensitivityResult = {
+        id: Date.now().toString(), // Simple unique ID
+        score: gameResult,
+        difficulty: difficulty,
+        date: new Date().toISOString(),
+      };
+      setPerformanceHistory((prevHistory) => ({
+        ...prevHistory,
+        colorSensitivity: [...(prevHistory.colorSensitivity || []), newResult], // Ensure colorSensitivity exists
+      }));
+    }
+  }, [isGameOver, gameResult, difficulty, setPerformanceHistory]);
 
   const generateLevel = useCallback(() => {
     const { rows, cols } = getGridDimensions(score);
