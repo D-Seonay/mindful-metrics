@@ -1,4 +1,4 @@
-import { Timer, Target, BarChart2, Settings, Zap, Activity } from "lucide-react";
+import { Timer, Target, BarChart2, Settings, Zap, Activity, Eye } from "lucide-react";
 
 const features = [
   {
@@ -40,6 +40,14 @@ const features = [
     color: "text-amber-500",
     bg: "bg-amber-500/10",
     border: "border-amber-500/20"
+  },
+  {
+    icon: Eye,
+    title: "Color Sensitivity",
+    description: "Test your ability to differentiate subtle color nuances and improve visual perception.",
+    color: "text-purple-500",
+    bg: "bg-purple-500/10",
+    border: "border-purple-500/20"
   },
   {
     icon: Settings,

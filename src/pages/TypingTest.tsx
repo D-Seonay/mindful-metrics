@@ -63,8 +63,9 @@ export default function TypingTest() {
 
   const [text, setText] = useState(() => getRandomText(language, includePunctuation));
   const [userInput, setUserInput] = useState('');
-  const [mistakesCount, setMistakesCount] = useState(0);
-  const [totalCharsTyped, setTotalCharsTyped] = useState(0);
+  const [totalKeystrokes, setTotalKeystrokes] = useState(0); // New state for total keystrokes
+  const [persistentErrorCount, setPersistentErrorCount] = useState(0); // New state for persistent errors
+  const [currentErrors, setCurrentErrors] = useState<Set<number>>(new Set()); // Tracks indices of current errors for visual feedback
   const [gameState, setGameState] = useState<GameState>('idle');
   const [isTestStarted, setIsTestStarted] = useState(false);
   const [startTime, setStartTime] = useState<number>(0);
@@ -77,16 +78,16 @@ export default function TypingTest() {
 
   
   const calculateStats = useCallback(() => {
-    if (totalCharsTyped === 0) return { wpm: 0, accuracy: 100 };
+    if (totalKeystrokes === 0) return { wpm: 0, accuracy: 100 };
 
     const timeInMinutes = elapsedTime / 60;
-    const wordsTyped = userInput.length / 5; // Standard: 5 chars = 1 word
+    const wordsTyped = (totalKeystrokes - persistentErrorCount) / 5; // Use corrected keystrokes for WPM
     const wpm = timeInMinutes > 0 ? Math.round(wordsTyped / timeInMinutes) : 0;
     
-    const accuracy = Math.max(0, Math.round(((totalCharsTyped - mistakesCount) / totalCharsTyped) * 100));
+    const accuracy = Math.max(0, ((totalKeystrokes - persistentErrorCount) / totalKeystrokes) * 100);
     
-    return { wpm, accuracy };
-  }, [userInput, elapsedTime, mistakesCount, totalCharsTyped]);
+    return { wpm, accuracy: Math.round(accuracy) };
+  }, [elapsedTime, persistentErrorCount, totalKeystrokes]);
 
   const stats = calculateStats();
 
@@ -108,17 +109,14 @@ export default function TypingTest() {
 
   const resetGame = useCallback(() => {
     stopTimer();
-    if (testMode === 'time') {
-      setText(getRandomWords(100, language, includePunctuation));
-    } else {
-      setText(getRandomWords(wordsOption, language, includePunctuation));
-    }
+    setText(testMode === 'time' ? getRandomWords(100, language, includePunctuation) : getRandomWords(wordsOption, language, includePunctuation));
     setUserInput('');
     setGameState('idle');
     setStartTime(0);
     setElapsedTime(0);
-    setMistakesCount(0);
-    setTotalCharsTyped(0);
+    setTotalKeystrokes(0); // Reset total keystrokes
+    setPersistentErrorCount(0); // Reset persistent errors
+    setCurrentErrors(new Set()); // Reset current errors
     setIsTestStarted(false); // Reset isTestStarted
     setTimeout(() => inputRef.current?.focus(), 50);
   }, [stopTimer, language, testMode, wordsOption, includePunctuation]);
@@ -134,6 +132,7 @@ export default function TypingTest() {
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    const currentInputLength = userInput.length;
     
     if (gameState !== 'finished') {
       // Start timer on first character typed
@@ -143,31 +142,43 @@ export default function TypingTest() {
         startTimer();
       }
 
-      // Prevent processing if no input or test not started
+      // Prevent processing if test not started and input is empty
       if (!isTestStarted && value.length === 0) {
         setUserInput('');
         return;
       }
       
-      // Process character input only if test has started
-      if (isTestStarted) {
-        if (value.length > userInput.length) { // Character added
-          const charIndex = value.length - 1;
-          const typedChar = value[charIndex];
-          const expectedChar = text[charIndex];
-          
-          setTotalCharsTyped(prev => prev + 1);
-
-          if (typedChar !== expectedChar) {
-            setMistakesCount(prev => prev + 1);
-            playSound('error');
-          } else {
-            playSound('type');
-          }
+      // If backspace was pressed
+      if (value.length < currentInputLength) {
+        // Remove the error from currentErrors if the character was an error
+        const deletedCharIndex = currentInputLength - 1;
+        setCurrentErrors(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(deletedCharIndex);
+          return newSet;
+        });
+        // Persistent errors are NOT decremented
+      } else if (value.length > currentInputLength) { // Character added
+        const charIndex = value.length - 1;
+        const typedChar = value[charIndex];
+        const expectedChar = text[charIndex];
+        
+        setTotalKeystrokes(prev => prev + 1); // Increment total keystrokes for every character typed
+        
+        if (typedChar !== expectedChar) {
+          setPersistentErrorCount(prev => prev + 1); // Increment persistent error count
+          setCurrentErrors(prev => new Set(prev).add(charIndex)); // Add to current errors for visual feedback
+          playSound('error');
+        } else {
+          setCurrentErrors(prev => { // Remove from current errors if corrected
+            const newSet = new Set(prev);
+            newSet.delete(charIndex);
+            return newSet;
+          });
+          playSound('type');
         }
-        setGameState('typing'); // Ensure game state is typing once started
       }
-
+      setGameState('typing'); // Ensure game state is typing once started
       setUserInput(value);
     }
   }, [gameState, isTestStarted, startTimer, userInput.length, playSound, text]);
@@ -181,9 +192,9 @@ export default function TypingTest() {
 
   useEffect(() => {
     if (gameState === 'finished') {
-      const finalWpm = elapsedTime > 0 ? Math.round((userInput.length / 5) / (elapsedTime / 60)) : 0;
-      const finalAccuracy = totalCharsTyped > 0 
-        ? Math.max(0, Math.round(((totalCharsTyped - mistakesCount) / totalCharsTyped) * 100))
+      const finalWpm = elapsedTime > 0 ? Math.round(((totalKeystrokes - persistentErrorCount) / 5) / (elapsedTime / 60)) : 0;
+      const finalAccuracy = totalKeystrokes > 0 
+        ? Math.max(0, Math.round(((totalKeystrokes - persistentErrorCount) / totalKeystrokes) * 100))
         : 100;
 
       const newResult: TypingResult = {
@@ -201,20 +212,19 @@ export default function TypingTest() {
         };
       });
     }
-  }, [gameState, elapsedTime, userInput, totalCharsTyped, mistakesCount, setHistory]);
+  }, [gameState, elapsedTime, totalKeystrokes, persistentErrorCount, setHistory]);
 
   useEffect(() => {
     if (gameState === 'typing') {
       if (testMode === 'time' && elapsedTime >= timeOption) {
         finishGame();
       }
-      // For word mode, we finish when userInput matches text length and all typed are correct
-      // Or if the user typed more than the expected text length
-      if (testMode === 'words' && (userInput.length >= text.length && mistakesCount === 0 || userInput.length > text.length)) {
+      // For word mode, we finish when userInput length matches text length
+      if (testMode === 'words' && userInput.length >= text.length) {
         finishGame();
       }
     }
-  }, [gameState, elapsedTime, userInput, text, testMode, timeOption, finishGame, mistakesCount]);
+  }, [gameState, elapsedTime, userInput, text, testMode, timeOption, finishGame]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Tab' && gameState === 'finished') {
@@ -363,9 +373,11 @@ export default function TypingTest() {
                       
                       if (index < userInput.length) {
                         if (userInput[index] === char) {
-                          colorClass = 'text-foreground'; // Correct
+                          colorClass = 'text-foreground'; // Correctly typed
+                        } else if (currentErrors.has(index)) {
+                          colorClass = 'text-destructive'; // Incorrect, currently an error
                         } else {
-                          colorClass = 'text-destructive'; // Incorrect
+                          colorClass = 'text-foreground'; // Correctly typed after backspace
                         }
                       }
                       
