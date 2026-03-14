@@ -17,7 +17,8 @@ const initialHistory: PerformanceHistory = {
   reflex: [],
   typing: [],
   timePerception: [],
-  aimTrainer: []
+  aimTrainer: [],
+  colorSensitivity: []
 };
 
 const translations = {
@@ -107,6 +108,14 @@ export default function TypingTest() {
     }
   }, []);
 
+  const finishGame = useCallback(() => {
+    if (gameState === 'finished') return;
+    stopTimer();
+    setGameState('finished');
+    playSound('hit');
+    setIsTestStarted(false);
+  }, [stopTimer, playSound, gameState]);
+
   const resetGame = useCallback(() => {
     stopTimer();
     setText(testMode === 'time' ? getRandomWords(100, language, includePunctuation) : getRandomWords(wordsOption, language, includePunctuation));
@@ -175,15 +184,12 @@ export default function TypingTest() {
       }
       setGameState('typing');
       setUserInput(value);
-    }
-  }, [gameState, isTestStarted, startTimer, userInput.length, playSound, text]);
 
-  const finishGame = useCallback(() => {
-    stopTimer();
-    setGameState('finished');
-    playSound('hit');
-    setIsTestStarted(false);
-  }, [stopTimer, playSound]);
+      if (testMode === 'words' && value.length >= text.length) {
+        finishGame();
+      }
+    }
+  }, [gameState, isTestStarted, startTimer, userInput.length, playSound, text, testMode, finishGame]);
 
   useEffect(() => {
     if (gameState === 'finished') {
@@ -211,11 +217,8 @@ export default function TypingTest() {
       if (testMode === 'time' && elapsedTime >= timeOption) {
         finishGame();
       }
-      if (testMode === 'words' && userInput.length >= text.length) {
-        finishGame();
-      }
     }
-  }, [gameState, elapsedTime, userInput, text, testMode, timeOption, finishGame]);
+  }, [gameState, elapsedTime, testMode, timeOption, finishGame]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Tab' && (gameState === 'finished' || gameState === 'typing' || gameState === 'idle')) {

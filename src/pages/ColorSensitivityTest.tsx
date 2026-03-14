@@ -55,8 +55,8 @@ const ColorSensitivityTest: React.FC = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
-  const [performanceHistory, setPerformanceHistory] = useLocalStorage<PerformanceHistory>(
-    "performanceHistory",
+  const [history, setHistory] = useLocalStorage<PerformanceHistory>(
+    "performance-history",
     {
       reflex: [],
       typing: [],
@@ -75,12 +75,12 @@ const ColorSensitivityTest: React.FC = () => {
         difficulty: difficulty,
         date: new Date().toISOString(),
       };
-      setPerformanceHistory((prevHistory) => ({
+      setHistory((prevHistory) => ({
         ...prevHistory,
         colorSensitivity: [...(prevHistory.colorSensitivity || []), newResult], // Ensure colorSensitivity exists
       }));
     }
-  }, [isGameOver, gameResult, difficulty, setPerformanceHistory]);
+  }, [isGameOver, gameResult, difficulty, setHistory]);
 
   const generateLevel = useCallback(() => {
     const { rows, cols } = getGridDimensions(score);

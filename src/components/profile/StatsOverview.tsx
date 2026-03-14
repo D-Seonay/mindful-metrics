@@ -14,7 +14,7 @@ const initialHistory: PerformanceHistory = {
 };
 
 export function StatsOverview() {
-  const [history] = useLocalStorage<PerformanceHistory>('performanceHistory', initialHistory);
+  const [history] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
 
   // --- Reflex Helpers ---
   const reflexStats = () => {
