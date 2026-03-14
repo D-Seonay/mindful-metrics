@@ -63,25 +63,25 @@ export default function TypingTest() {
 
   const [text, setText] = useState(() => getRandomText(language, includePunctuation));
   const [userInput, setUserInput] = useState('');
-  const [totalKeystrokes, setTotalKeystrokes] = useState(0); // New state for total keystrokes
-  const [persistentErrorCount, setPersistentErrorCount] = useState(0); // New state for persistent errors
-  const [currentErrors, setCurrentErrors] = useState<Set<number>>(new Set()); // Tracks indices of current errors for visual feedback
+  const [totalKeystrokes, setTotalKeystrokes] = useState(0);
+  const [persistentErrorCount, setPersistentErrorCount] = useState(0);
+  const [currentErrors, setCurrentErrors] = useState<Set<number>>(new Set());
   const [gameState, setGameState] = useState<GameState>('idle');
   const [isTestStarted, setIsTestStarted] = useState(false);
   const [startTime, setStartTime] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
+  const [isFocused, setIsFocused] = useState(true);
   const { playSound } = useSoundSystem();
   
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  
   const calculateStats = useCallback(() => {
     if (totalKeystrokes === 0) return { wpm: 0, accuracy: 100 };
 
     const timeInMinutes = elapsedTime / 60;
-    const wordsTyped = (totalKeystrokes - persistentErrorCount) / 5; // Use corrected keystrokes for WPM
+    const wordsTyped = (totalKeystrokes - persistentErrorCount) / 5;
     const wpm = timeInMinutes > 0 ? Math.round(wordsTyped / timeInMinutes) : 0;
     
     const accuracy = Math.max(0, ((totalKeystrokes - persistentErrorCount) / totalKeystrokes) * 100);
@@ -96,7 +96,7 @@ export default function TypingTest() {
       clearInterval(timerRef.current);
     }
     timerRef.current = setInterval(() => {
-      setElapsedTime(prev => prev + 0.01); // Update every 10ms for higher precision
+      setElapsedTime(prev => prev + 0.01);
     }, 10);
   }, []);
 
@@ -114,10 +114,10 @@ export default function TypingTest() {
     setGameState('idle');
     setStartTime(0);
     setElapsedTime(0);
-    setTotalKeystrokes(0); // Reset total keystrokes
-    setPersistentErrorCount(0); // Reset persistent errors
-    setCurrentErrors(new Set()); // Reset current errors
-    setIsTestStarted(false); // Reset isTestStarted
+    setTotalKeystrokes(0);
+    setPersistentErrorCount(0);
+    setCurrentErrors(new Set());
+    setIsTestStarted(false);
     setTimeout(() => inputRef.current?.focus(), 50);
   }, [stopTimer, language, testMode, wordsOption, includePunctuation]);
 
@@ -135,42 +135,37 @@ export default function TypingTest() {
     const currentInputLength = userInput.length;
     
     if (gameState !== 'finished') {
-      // Start timer on first character typed
       if (!isTestStarted && value.length > 0) {
         setIsTestStarted(true);
         setStartTime(Date.now());
         startTimer();
       }
 
-      // Prevent processing if test not started and input is empty
       if (!isTestStarted && value.length === 0) {
         setUserInput('');
         return;
       }
       
-      // If backspace was pressed
       if (value.length < currentInputLength) {
-        // Remove the error from currentErrors if the character was an error
         const deletedCharIndex = currentInputLength - 1;
         setCurrentErrors(prev => {
           const newSet = new Set(prev);
           newSet.delete(deletedCharIndex);
           return newSet;
         });
-        // Persistent errors are NOT decremented
-      } else if (value.length > currentInputLength) { // Character added
+      } else if (value.length > currentInputLength) {
         const charIndex = value.length - 1;
         const typedChar = value[charIndex];
         const expectedChar = text[charIndex];
         
-        setTotalKeystrokes(prev => prev + 1); // Increment total keystrokes for every character typed
+        setTotalKeystrokes(prev => prev + 1);
         
         if (typedChar !== expectedChar) {
-          setPersistentErrorCount(prev => prev + 1); // Increment persistent error count
-          setCurrentErrors(prev => new Set(prev).add(charIndex)); // Add to current errors for visual feedback
+          setPersistentErrorCount(prev => prev + 1);
+          setCurrentErrors(prev => new Set(prev).add(charIndex));
           playSound('error');
         } else {
-          setCurrentErrors(prev => { // Remove from current errors if corrected
+          setCurrentErrors(prev => {
             const newSet = new Set(prev);
             newSet.delete(charIndex);
             return newSet;
@@ -178,7 +173,7 @@ export default function TypingTest() {
           playSound('type');
         }
       }
-      setGameState('typing'); // Ensure game state is typing once started
+      setGameState('typing');
       setUserInput(value);
     }
   }, [gameState, isTestStarted, startTimer, userInput.length, playSound, text]);
@@ -187,20 +182,17 @@ export default function TypingTest() {
     stopTimer();
     setGameState('finished');
     playSound('hit');
-    setIsTestStarted(false); // Ensure isTestStarted is reset when game finishes
+    setIsTestStarted(false);
   }, [stopTimer, playSound]);
 
   useEffect(() => {
     if (gameState === 'finished') {
-      const finalWpm = elapsedTime > 0 ? Math.round(((totalKeystrokes - persistentErrorCount) / 5) / (elapsedTime / 60)) : 0;
-      const finalAccuracy = totalKeystrokes > 0 
-        ? Math.max(0, Math.round(((totalKeystrokes - persistentErrorCount) / totalKeystrokes) * 100))
-        : 100;
+      const { wpm, accuracy } = calculateStats();
 
       const newResult: TypingResult = {
         id: crypto.randomUUID(),
-        wpm: finalWpm,
-        accuracy: finalAccuracy,
+        wpm,
+        accuracy,
         date: new Date().toISOString(),
       };
       
@@ -212,14 +204,13 @@ export default function TypingTest() {
         };
       });
     }
-  }, [gameState, elapsedTime, totalKeystrokes, persistentErrorCount, setHistory]);
+  }, [gameState, calculateStats, setHistory]);
 
   useEffect(() => {
     if (gameState === 'typing') {
       if (testMode === 'time' && elapsedTime >= timeOption) {
         finishGame();
       }
-      // For word mode, we finish when userInput length matches text length
       if (testMode === 'words' && userInput.length >= text.length) {
         finishGame();
       }
@@ -227,7 +218,7 @@ export default function TypingTest() {
   }, [gameState, elapsedTime, userInput, text, testMode, timeOption, finishGame]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Tab' && gameState === 'finished') {
+    if (e.key === 'Tab' && (gameState === 'finished' || gameState === 'typing' || gameState === 'idle')) {
       e.preventDefault();
       resetGame();
     }
@@ -247,178 +238,212 @@ export default function TypingTest() {
   }, [stopTimer]);
 
   const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    const secondsFormatted = Math.floor(remainingSeconds);
-    const millisecondsFormatted = Math.floor((remainingSeconds - secondsFormatted) * 100)
-      .toString()
-      .padStart(2, '0');
-    
-    return `${minutes.toString().padStart(2, '0')}:${secondsFormatted.toString().padStart(2, '0')}.${millisecondsFormatted}`;
+    const remaining = testMode === 'time' ? Math.max(0, timeOption - seconds) : seconds;
+    const minutes = Math.floor(remaining / 60);
+    const secs = Math.floor(remaining % 60);
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
   const t = translations[language];
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold mb-2">{t.title}</h1>
-            <p className="text-muted-foreground">{t.subtitle}</p>
-            <div className="flex gap-2 mt-4">
-              <Button onClick={() => handleLanguageChange('fr')} variant={language === 'fr' ? 'secondary' : 'ghost'}>Français</Button>
-              <Button onClick={() => handleLanguageChange('en')} variant={language === 'en' ? 'secondary' : 'ghost'}>English</Button>
-            </div>
+      <div className="container max-w-5xl mx-auto px-4 py-12">
+        {/* Compact Settings Bar */}
+        <div className={cn(
+          "flex flex-wrap items-center justify-between gap-4 mb-12 p-2 rounded-xl bg-secondary/20 border border-border/50 transition-opacity duration-300",
+          gameState === 'typing' ? "opacity-0 pointer-events-none" : "opacity-100"
+        )}>
+          <div className="flex items-center gap-1">
+            <Button 
+              variant={language === 'fr' ? 'secondary' : 'ghost'} 
+              size="sm" 
+              onClick={() => handleLanguageChange('fr')}
+              className="h-8 text-xs font-mono"
+            >
+              FR
+            </Button>
+            <Button 
+              variant={language === 'en' ? 'secondary' : 'ghost'} 
+              size="sm" 
+              onClick={() => handleLanguageChange('en')}
+              className="h-8 text-xs font-mono"
+            >
+              EN
+            </Button>
           </div>
 
-          <div className="flex flex-col items-center gap-4 mb-8">
-            <ToggleGroup type="single" value={includePunctuation ? 'on' : 'off'} onValueChange={(value) => setIncludePunctuation(value === 'on')}>
-              <ToggleGroupItem value="on" aria-label="With punctuation">
-                Punctuation
+          <div className="h-4 w-[1px] bg-border/50 hidden sm:block" />
+
+          <div className="flex items-center gap-4">
+            <ToggleGroup type="single" value={testMode} onValueChange={(value: TestMode) => value && setTestMode(value)} className="bg-transparent">
+              <ToggleGroupItem value="time" className="h-8 px-3 text-xs font-mono data-[state=on]:bg-secondary">
+                <Timer className="h-3 w-3 mr-2" />
+                TIME
               </ToggleGroupItem>
-              <ToggleGroupItem value="off" aria-label="No punctuation">
-                No Punctuation
+              <ToggleGroupItem value="words" className="h-8 px-3 text-xs font-mono data-[state=on]:bg-secondary">
+                <Pilcrow className="h-3 w-3 mr-2" />
+                WORDS
               </ToggleGroupItem>
             </ToggleGroup>
 
-            <ToggleGroup type="single" value={testMode} onValueChange={(value: TestMode) => value && setTestMode(value)}>
-              <ToggleGroupItem value="time" aria-label="Time mode">
-                <Timer className="h-4 w-4 mr-2" />
-                Time
-              </ToggleGroupItem>
-              <ToggleGroupItem value="words" aria-label="Words mode">
-                <Pilcrow className="h-4 w-4 mr-2" />
-                Words
-              </ToggleGroupItem>
-            </ToggleGroup>
-
-            {testMode === 'time' && (
-              <div className="flex gap-2">
-                {timeOptions.map(option => (
-                  <Button key={option} variant={timeOption === option ? 'secondary' : 'ghost'} onClick={() => setTimeOption(option)}>
-                    {option}s
-                  </Button>
-                ))}
-              </div>
-            )}
-
-            {testMode === 'words' && (
-              <div className="flex gap-2">
-                {wordOptions.map(option => (
-                  <Button key={option} variant={wordsOption === option ? 'secondary' : 'ghost'} onClick={() => setWordsOption(option)}>
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="grid lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-4">
-              {/* Stats bar */}
-              <div className="flex flex-wrap items-center gap-4 md:gap-6 mb-6 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">{t.time}</span>
-                  <span className="font-semibold tabular-nums">{formatTime(elapsedTime)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">{t.wpm}</span>
-                  <span className="font-semibold tabular-nums">{stats.wpm}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">{t.accuracy}</span>
-                  <span className="font-semibold tabular-nums">{stats.accuracy}%</span>
-                </div>
-                <Button
-                  variant="ghost"
+            <div className="flex gap-1">
+              {(testMode === 'time' ? timeOptions : wordOptions).map(option => (
+                <Button 
+                  key={option} 
+                  variant={(testMode === 'time' ? timeOption : wordsOption) === option ? 'secondary' : 'ghost'} 
                   size="sm"
-                  onClick={() => resetGame()}
-                  className="ml-auto h-8 px-3"
+                  onClick={() => testMode === 'time' ? setTimeOption(option) : setWordsOption(option)}
+                  className="h-8 px-3 text-xs font-mono"
                 >
-                  <RotateCcw className="h-3.5 w-3.5 mr-2" />
-                  {t.restart}
+                  {option}
                 </Button>
-              </div>
-
-              {gameState === 'finished' ? (
-                /* Results screen */
-                <div className="p-6 md:p-12 rounded-2xl bg-secondary/30 text-center result-display">
-                  <div className="mb-8">
-                    <div className="text-5xl md:text-7xl font-extrabold mb-2 animate-pulse-subtle">
-                      {stats.wpm}
-                    </div>
-                    <div className="text-xl text-muted-foreground">{t.resultsTitle}</div>
-                  </div>
-                  <div className="flex items-center justify-center gap-8 mb-8">
-                    <div>
-                      <div className="text-3xl font-bold">{stats.accuracy}%</div>
-                      <div className="text-sm text-muted-foreground">{t.resultsAccuracy}</div>
-                    </div>
-                    <div>
-                      <div className="text-3xl font-bold">{formatTime(elapsedTime)}</div>
-                      <div className="text-sm text-muted-foreground">{t.resultsTime}</div>
-                    </div>
-                  </div>
-                  <p className="text-muted-foreground" dangerouslySetInnerHTML={{ __html: t.restartHint }}></p>
-                </div>
-              ) : (
-                /* Typing area */
-                <div
-                  className="p-4 md:p-8 rounded-2xl bg-secondary/30 cursor-text"
-                  onClick={() => inputRef.current?.focus()}
-                >
-                  <div className="text-xl md:text-2xl leading-relaxed font-medium tracking-wide">
-                    {text.split('').map((char, index) => {
-                      let colorClass = 'text-muted-foreground/40'; // Not typed yet
-                      
-                      if (index < userInput.length) {
-                        if (userInput[index] === char) {
-                          colorClass = 'text-foreground'; // Correctly typed
-                        } else if (currentErrors.has(index)) {
-                          colorClass = 'text-destructive'; // Incorrect, currently an error
-                        } else {
-                          colorClass = 'text-foreground'; // Correctly typed after backspace
-                        }
-                      }
-                      
-                      const isCurrentChar = index === userInput.length;
-                      
-                      return (
-                        <span
-                          key={index}
-                          className={cn(
-                            colorClass,
-                            isCurrentChar && "border-l-2 border-primary typing-cursor"
-                          )}
-                        >
-                          {char}
-                        </span>
-                      );
-                    })}
-                  </div>
-                  
-                  {/* Hidden input for capturing keystrokes */}
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={userInput}
-                    onChange={handleInputChange}
-                    className="absolute opacity-0 pointer-events-none"
-                    autoComplete="off"
-                    autoCapitalize="off"
-                    autoCorrect="off"
-                    spellCheck={false}
-                  />
-                </div>
-              )}
-
-              {gameState === 'idle' && (
-                <p className="text-center text-sm text-muted-foreground mt-4">
-                  {t.startTyping}
-                </p>
-              )}
+              ))}
             </div>
           </div>
+
+          <div className="h-4 w-[1px] bg-border/50 hidden sm:block" />
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant={includePunctuation ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setIncludePunctuation(!includePunctuation)}
+              className="h-8 px-3 text-xs font-mono"
+            >
+              {t.punctuation.toUpperCase()}
+            </Button>
+          </div>
+        </div>
+
+        {/* HUD Stats */}
+        <div className="flex justify-start gap-12 mb-8 font-mono">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">{t.time}</span>
+            <span className="text-2xl font-bold tabular-nums text-primary">
+              {formatTime(elapsedTime)}
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">{t.wpm}</span>
+            <span className="text-2xl font-bold tabular-nums">
+              {stats.wpm}
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">{t.accuracy}</span>
+            <span className="text-2xl font-bold tabular-nums">
+              {stats.accuracy}%
+            </span>
+          </div>
+          <div className="ml-auto flex items-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => resetGame()}
+              className="h-8 px-3 text-xs font-mono text-muted-foreground hover:text-foreground"
+            >
+              <RotateCcw className="h-3 w-3 mr-2" />
+              {t.restart.toUpperCase()}
+            </Button>
+          </div>
+        </div>
+
+        <div className="relative">
+          {gameState === 'finished' ? (
+            /* Results screen */
+            <div className="p-12 rounded-2xl bg-secondary/10 border border-border/50 text-center result-display">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                <div className="space-y-1">
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-widest">{t.resultsTitle}</div>
+                  <div className="text-6xl font-bold text-primary">{stats.wpm}</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-widest">{t.resultsAccuracy}</div>
+                  <div className="text-4xl font-bold">{stats.accuracy}%</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-widest">{t.resultsTime}</div>
+                  <div className="text-4xl font-bold tabular-nums">{elapsedTime.toFixed(1)}s</div>
+                </div>
+              </div>
+              <div className="mt-12 flex flex-col items-center gap-4">
+                <Button onClick={resetGame} size="lg" className="rounded-full px-8 font-mono">
+                  {t.restart.toUpperCase()}
+                </Button>
+                <p className="text-xs text-muted-foreground font-mono" dangerouslySetInnerHTML={{ __html: t.restartHint }}></p>
+              </div>
+            </div>
+          ) : (
+            /* Typing area */
+            <div
+              className={cn(
+                "relative p-8 rounded-2xl transition-all duration-500 cursor-text min-h-[200px]",
+                !isFocused && "blur-sm grayscale-[0.5] opacity-50"
+              )}
+              onClick={() => inputRef.current?.focus()}
+            >
+              <div className="text-2xl md:text-3xl leading-relaxed font-mono tracking-tight text-left select-none">
+                {text.split('').map((char, index) => {
+                  let colorClass = 'text-muted-foreground/30';
+                  
+                  if (index < userInput.length) {
+                    if (userInput[index] === char) {
+                      colorClass = 'text-foreground';
+                    } else {
+                      colorClass = 'text-destructive';
+                    }
+                  }
+                  
+                  const isCurrentChar = index === userInput.length;
+                  
+                  return (
+                    <span
+                      key={index}
+                      className={cn(
+                        colorClass,
+                        "transition-colors duration-150 relative",
+                        isCurrentChar && "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-primary after:animate-pulse"
+                      )}
+                    >
+                      {char}
+                    </span>
+                  );
+                })}
+              </div>
+
+              {/* Unfocused overlay */}
+              {!isFocused && (
+                <div className="absolute inset-0 flex items-center justify-center z-10">
+                  <div className="bg-background/80 backdrop-blur-sm px-6 py-3 rounded-full border border-border shadow-xl">
+                    <p className="text-sm font-mono tracking-widest uppercase">Click to Focus</p>
+                  </div>
+                </div>
+              )}
+              
+              <input
+                ref={inputRef}
+                type="text"
+                value={userInput}
+                onChange={handleInputChange}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                className="absolute opacity-0 pointer-events-none"
+                autoComplete="off"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+            </div>
+          )}
+
+          {gameState === 'idle' && isFocused && (
+            <div className="mt-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
+              <p className="text-xs font-mono text-muted-foreground tracking-[0.2em] uppercase">
+                {t.startTyping}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </Layout>
