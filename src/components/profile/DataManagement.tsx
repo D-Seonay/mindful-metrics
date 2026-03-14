@@ -21,6 +21,8 @@ const initialHistory: PerformanceHistory = {
   typing: [],
   timePerception: [],
   aimTrainer: [],
+  colorSensitivity: [],
+  peripheralVision: []
 };
 
 export function DataManagement() {

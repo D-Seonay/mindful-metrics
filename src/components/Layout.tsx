@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/utils';
-import { Zap, Keyboard, Hourglass, MousePointerClick, User, Menu, Eye } from 'lucide-react';
+import { Zap, Keyboard, Hourglass, MousePointerClick, User, Menu, Eye, Target } from 'lucide-react';
 
 import { StreakCounter } from './StreakCounter';
 import { AudioSettings } from './AudioSettings';
@@ -18,6 +18,7 @@ const navItems = [
   { to: "/time-perception", icon: Hourglass, label: "Time Perception" },
   { to: "/aim-trainer", icon: MousePointerClick, label: "Aim Trainer" },
   { to: "/color-vision", icon: Eye, label: "Couleurs" },
+  { to: "/peripheral-vision", icon: Target, label: "Vision" },
   { to: "/profile", icon: User, label: "Profil" },
 ];
 

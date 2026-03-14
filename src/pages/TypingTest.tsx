@@ -18,7 +18,8 @@ const initialHistory: PerformanceHistory = {
   typing: [],
   timePerception: [],
   aimTrainer: [],
-  colorSensitivity: []
+  colorSensitivity: [],
+  peripheralVision: []
 };
 
 const translations = {

@@ -18,6 +18,8 @@ const initialHistory: PerformanceHistory = {
   typing: [],
   timePerception: [],
   aimTrainer: [],
+  colorSensitivity: [],
+  peripheralVision: []
 };
 
 export default function AimTrainer() {

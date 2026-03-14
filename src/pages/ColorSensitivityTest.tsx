@@ -62,7 +62,8 @@ const ColorSensitivityTest: React.FC = () => {
       typing: [],
       timePerception: [],
       aimTrainer: [],
-      colorSensitivity: [], // Initialize new field
+      colorSensitivity: [],
+      peripheralVision: [], // Initialize new field
     },
   );
 

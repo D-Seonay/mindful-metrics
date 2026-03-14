@@ -35,6 +35,14 @@ export interface ColorSensitivityResult {
   date: string; // ISO string
 }
 
+export interface PeripheralVisionResult {
+  id: string;
+  averageTime: number; // in milliseconds
+  accuracy: number; // percentage
+  targetsHit: number;
+  date: string; // ISO string
+}
+
 export type ReflexHistory = ReflexResult[];
 
 export type TypingHistory = TypingResult[];
@@ -45,10 +53,13 @@ export type AimTrainerHistory = AimTrainerResult[];
 
 export type ColorSensitivityHistory = ColorSensitivityResult[];
 
+export type PeripheralVisionHistory = PeripheralVisionResult[];
+
 export interface PerformanceHistory {
   reflex: ReflexHistory;
   typing: TypingHistory;
   timePerception: TimePerceptionHistory;
   aimTrainer: AimTrainerHistory;
   colorSensitivity: ColorSensitivityHistory;
+  peripheralVision: PeripheralVisionHistory;
 }

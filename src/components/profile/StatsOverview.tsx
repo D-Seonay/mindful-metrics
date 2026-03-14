@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import type { PerformanceHistory, ReflexResult, TypingResult, TimePerceptionResult, AimTrainerResult, ColorSensitivityResult } from "@/types/history";
-import { Zap, Keyboard, Hourglass, MousePointerClick, Eye } from "lucide-react";
+import type { PerformanceHistory, ReflexResult, TypingResult, TimePerceptionResult, AimTrainerResult, ColorSensitivityResult, PeripheralVisionResult } from "@/types/history";
+import { Zap, Keyboard, Hourglass, MousePointerClick, Eye, Target } from "lucide-react";
 import { StatsDetailDialog } from "./StatsDetailDialog";
 import { ActivityHeatmap } from "./ActivityHeatmap";
 
@@ -11,6 +11,7 @@ const initialHistory: PerformanceHistory = {
   timePerception: [],
   aimTrainer: [],
   colorSensitivity: [],
+  peripheralVision: []
 };
 
 export function StatsOverview() {
@@ -67,12 +68,26 @@ export function StatsOverview() {
         avg: `${avg} niveaux`,
       };
     };
+
+    // --- Peripheral Vision Helpers ---
+    const peripheralVisionStats = () => {
+      if (!history.peripheralVision?.length) return { best: "-", avg: "-", acc: "-" };
+      const best = Math.min(...history.peripheralVision.map(r => r.averageTime));
+      const avg = Math.round(history.peripheralVision.reduce((a, b) => a + b.averageTime, 0) / history.peripheralVision.length);
+      const acc = Math.round(history.peripheralVision.reduce((a, b) => a + b.accuracy, 0) / history.peripheralVision.length);
+      return {
+        best: `${best} ms`,
+        avg: `${avg} ms`,
+        acc: `${acc}%`
+      };
+    };
   
     const rStats = reflexStats();
     const tStats = typingStats();
     const tpStats = timeStats();
     const aStats = aimStats();
     const csStats = colorSensitivityStats();
+    const pvStats = peripheralVisionStats();
   
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -209,6 +224,35 @@ export function StatsOverview() {
               columns={[
                 { header: "Niveau", accessor: (item) => <span className="font-bold">{item.score}</span> },
                 { header: "Difficulté", accessor: (item) => item.difficulty },
+                { header: "Date", accessor: (item) => new Date(item.date).toLocaleDateString() },
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Peripheral Vision */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Vision Périphérique</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl md:text-2xl font-bold">{pvStats.best}</div>
+            <p className="text-xs text-muted-foreground mb-2 md:mb-4">
+               {history.peripheralVision?.length || 0} tests effectués
+            </p>
+            <StatsDetailDialog<PeripheralVisionResult>
+              title="Historique Vision Périphérique"
+              description="Vos temps de réaction en vision périphérique."
+              data={history.peripheralVision || []}
+              stats={[
+                { label: "Record (Moy)", value: pvStats.best },
+                { label: "Moyenne Globale", value: pvStats.avg },
+                { label: "Précision", value: pvStats.acc },
+              ]}
+              columns={[
+                { header: "Moyenne", accessor: (item) => `${item.averageTime} ms` },
+                { header: "Précision", accessor: (item) => `${item.accuracy}%` },
                 { header: "Date", accessor: (item) => new Date(item.date).toLocaleDateString() },
               ]}
             />

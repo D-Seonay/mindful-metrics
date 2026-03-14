@@ -11,6 +11,7 @@ import AimTrainer from "./pages/AimTrainer";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import ColorSensitivityTest from "./pages/ColorSensitivityTest";
+import PeripheralVision from "./pages/PeripheralVision";
 import { Layout } from "./components/Layout";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/aim-trainer" element={<Layout><AimTrainer /></Layout>} />
           <Route path="/profile" element={<Layout><Profile /></Layout>} />
           <Route path="/color-vision" element={<Layout><ColorSensitivityTest /></Layout>} />
+          <Route path="/peripheral-vision" element={<Layout><PeripheralVision /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

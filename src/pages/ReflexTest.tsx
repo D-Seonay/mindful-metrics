@@ -13,7 +13,9 @@ const initialHistory: PerformanceHistory = {
   reflex: [],
   typing: [],
   timePerception: [],
-  aimTrainer: []
+  aimTrainer: [],
+  colorSensitivity: [],
+  peripheralVision: []
 };
 
 const TEST_COUNT = 5;
