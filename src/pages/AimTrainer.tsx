@@ -2,16 +2,13 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAimGame, GameMode, MovementType } from '@/hooks/useAimGame';
 import { useSoundSystem } from '@/hooks/useSoundSystem';
 import type { PerformanceHistory, AimTrainerResult } from '@/types/history';
-import { Clock, Crosshair } from 'lucide-react';
-import { SubmitScoreModal } from '@/components/SubmitScoreModal';
+import { RotateCcw, Crosshair, Clock, Move } from 'lucide-react';
 
 const initialHistory: PerformanceHistory = {
   reflex: [],
@@ -27,11 +24,11 @@ export default function AimTrainer() {
   const [clickEffects, setClickEffects] = useState<{x: number, y: number, id: number}[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const { playSound } = useSoundSystem();
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
-  const [displayElapsedTime, setDisplayElapsedTime] = useState(0); // State for displaying elapsed time
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null); // Ref for timer interval ID
+  const [displayElapsedTime, setDisplayElapsedTime] = useState(0);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Local state for menu configuration
+  // Local state for configuration
+  const [mode, setMode] = useState<GameMode>('TIME_ATTACK');
   const [movement, setMovement] = useState<MovementType>('STATIC');
   const [autoDismiss, setAutoDismiss] = useState<string>("0");
 
@@ -41,14 +38,12 @@ export default function AimTrainer() {
     stats,
     config,
     startGame,
-    stopGame,
     resetGame,
     clickTarget,
     registerClick,
     setGameArea
   } = useAimGame();
 
-  // Initialize game area size
   useEffect(() => {
     if (containerRef.current) {
       setGameArea(containerRef.current.clientWidth, containerRef.current.clientHeight);
@@ -62,37 +57,25 @@ export default function AimTrainer() {
     return () => window.removeEventListener('resize', handleResize);
   }, [setGameArea]);
 
-  // Effect to manage the display timer
   useEffect(() => {
     if (gameState === 'PLAYING' && stats.startTime > 0) {
-      // Clear any existing interval to prevent double timers
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-      }
-      
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       const interval = setInterval(() => {
         setDisplayElapsedTime((performance.now() - stats.startTime) / 1000);
-      }, 10); // Update every 10ms for high precision
+      }, 10);
       timerIntervalRef.current = interval;
     } else {
-      // Clear interval when not playing or before game starts
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = null;
       }
-      setDisplayElapsedTime(0); // Reset display time
+      setDisplayElapsedTime(0);
     }
-
     return () => {
-      // Cleanup on unmount
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-        timerIntervalRef.current = null;
-      }
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     };
-  }, [gameState, stats.startTime]); // Depend on gameState and stats.startTime
+  }, [gameState, stats.startTime]);
 
-  // Save history when game finishes
   useEffect(() => {
     if (gameState === 'FINISHED') {
       const duration = stats.endTime - stats.startTime;
@@ -116,23 +99,14 @@ export default function AimTrainer() {
     }
   }, [gameState, stats, config.mode, setHistory]);
 
-
   const handleContainerPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (gameState !== 'PLAYING') return;
-    
-    // Play sounds for Miss
     playSound('shoot');
     playSound('miss');
-
-    // Calculate relative coordinates
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-
-    // Register click for stats
     registerClick();
-
-    // Visual effect
     const newEffect = { x, y, id: Date.now() };
     setClickEffects(prev => [...prev, newEffect]);
     setTimeout(() => {
@@ -141,12 +115,9 @@ export default function AimTrainer() {
   };
 
   const handleTargetPointerDown = (e: React.PointerEvent<HTMLDivElement>, targetId: number) => {
-    e.stopPropagation(); // Stop bubbling to container (prevents "Miss" logic)
-    
-    // Play sounds for Hit
+    e.stopPropagation();
     playSound('shoot');
     playSound('hit');
-
     const rect = containerRef.current?.getBoundingClientRect();
     if (rect) {
        const x = e.clientX - rect.left;
@@ -157,188 +128,196 @@ export default function AimTrainer() {
             setClickEffects(prev => prev.filter(ef => ef.id !== newEffect.id));
         }, 500);
     }
-    
     clickTarget(targetId);
   };
 
-  const handleStartTimeAttack = () => {
+  const handleStart = () => {
+    if (mode === 'TIME_ATTACK') {
       startGame({ 
           mode: 'TIME_ATTACK', 
           movement: movement, 
           autoDismissTime: Number(autoDismiss), 
           duration: 30 
       });
-  };
-
-  const handleStartPrecision = () => {
+    } else {
       startGame({ 
           mode: 'PRECISION', 
-          movement: 'STATIC', // Enforced static for precision for now, or could use same state
+          movement: movement,
           targetCount: 20 
       });
+    }
   };
 
   const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    const secondsFormatted = Math.floor(remainingSeconds);
-    const millisecondsFormatted = Math.floor((remainingSeconds - secondsFormatted) * 100)
-      .toString()
-      .padStart(2, '0');
-    
-    return `${minutes.toString().padStart(2, '0')}:${secondsFormatted.toString().padStart(2, '0')}.${millisecondsFormatted}`;
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const currentAccuracy = stats.totalClicks > 0 ? Math.round((stats.score / stats.totalClicks) * 100) : 0;
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 h-[calc(100vh-64px)] flex flex-col">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Aim Trainer</h1>
+      <div className="container max-w-5xl mx-auto px-4 py-12 flex flex-col h-[calc(100vh-4rem)]">
+        {/* Compact Settings Bar */}
+        <div className={cn(
+          "flex flex-wrap items-center justify-between gap-4 mb-12 p-2 rounded-xl bg-secondary/20 border border-border/50 transition-opacity duration-300",
+          gameState === 'PLAYING' ? "opacity-0 pointer-events-none" : "opacity-100"
+        )}>
           <div className="flex items-center gap-4">
-             {gameState === 'PLAYING' && (
-                <div className="flex gap-4 text-xl font-mono mr-4">
-                   {config.mode === 'TIME_ATTACK' ? (
-                      <span>Time: {formatTime(Math.max(0, config.duration - displayElapsedTime))}</span>
-                   ) : (
-                      <span>Time: {formatTime(displayElapsedTime)}</span>
-                   )}
-                   <span>Score: {stats.score}</span>
-                </div>
-             )}
+            <ToggleGroup type="single" value={mode} onValueChange={(v: GameMode) => v && setMode(v)} className="bg-transparent">
+              <ToggleGroupItem value="TIME_ATTACK" className="h-8 px-3 text-xs font-mono data-[state=on]:bg-secondary">
+                <Clock className="h-3 w-3 mr-2" /> TIME
+              </ToggleGroupItem>
+              <ToggleGroupItem value="PRECISION" className="h-8 px-3 text-xs font-mono data-[state=on]:bg-secondary">
+                <Crosshair className="h-3 w-3 mr-2" /> PRECISION
+              </ToggleGroupItem>
+            </ToggleGroup>
+
+            <div className="h-4 w-[1px] bg-border/50 hidden sm:block" />
+
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest px-1">Movement</span>
+              <Select onValueChange={(v) => setMovement(v as MovementType)} value={movement}>
+                <SelectTrigger className="h-8 w-[100px] text-xs font-mono bg-transparent border-none focus:ring-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="STATIC">Static</SelectItem>
+                  <SelectItem value="LINEAR">Linear</SelectItem>
+                  <SelectItem value="BOUNCE">Bounce</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="h-4 w-[1px] bg-border/50 hidden sm:block" />
+
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest px-1">Dismiss</span>
+              <Select onValueChange={setAutoDismiss} value={autoDismiss}>
+                <SelectTrigger className="h-8 w-[100px] text-xs font-mono bg-transparent border-none focus:ring-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">Never</SelectItem>
+                  <SelectItem value="2">2s</SelectItem>
+                  <SelectItem value="1">1s</SelectItem>
+                  <SelectItem value="0.5">0.5s</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* HUD Stats */}
+        <div className="flex justify-start gap-12 mb-8 font-mono">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Time</span>
+            <span className="text-2xl font-bold tabular-nums text-primary">
+              {config.mode === 'TIME_ATTACK' 
+                ? formatTime(Math.max(0, config.duration - displayElapsedTime))
+                : formatTime(displayElapsedTime)
+              }
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Score</span>
+            <span className="text-2xl font-bold tabular-nums">
+              {stats.score}
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Accuracy</span>
+            <span className="text-2xl font-bold tabular-nums">
+              {currentAccuracy}%
+            </span>
+          </div>
+          <div className="ml-auto flex items-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetGame}
+              className="h-8 px-3 text-xs font-mono text-muted-foreground hover:text-foreground"
+            >
+              <RotateCcw className="h-3 w-3 mr-2" />
+              RESTART
+            </Button>
           </div>
         </div>
 
         <div className="flex-1 relative">
-           {gameState === 'IDLE' && (
-             <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-                <Card className="w-full max-w-2xl">
-                  <CardHeader>
-                    <CardTitle className="text-2xl text-center">Choisir un mode de jeu</CardTitle>
-                    <CardDescription className="text-center">Améliorez vos réflexes et votre précision</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Tabs defaultValue="TIME_ATTACK" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2 mb-6">
-                        <TabsTrigger value="TIME_ATTACK" className="flex gap-2">
-                           <Clock className="w-4 h-4" /> Time Attack
-                        </TabsTrigger>
-                        <TabsTrigger value="PRECISION" className="flex gap-2">
-                           <Crosshair className="w-4 h-4" /> Precision Run
-                        </TabsTrigger>
-                      </TabsList>
+          {gameState === 'IDLE' && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-zinc-950/20 rounded-2xl">
+              <Button onClick={handleStart} size="lg" className="rounded-full px-12 h-16 font-mono text-lg uppercase tracking-[0.2em] shadow-2xl">
+                START TEST
+              </Button>
+            </div>
+          )}
 
-                      <TabsContent value="TIME_ATTACK" className="space-y-4">
-                         <div className="text-center mb-6 text-muted-foreground">
-                            Touchez le maximum de cibles en 30 secondes.
-                         </div>
-                         <div className="grid grid-cols-2 gap-4 mb-6">
-                             <div className="space-y-2">
-                                <Label>Mouvement</Label>
-                                <Select onValueChange={(v) => setMovement(v as MovementType)} defaultValue="STATIC">
-                                   <SelectTrigger><SelectValue placeholder="Statique" /></SelectTrigger>
-                                   <SelectContent>
-                                      <SelectItem value="STATIC">Statique</SelectItem>
-                                      <SelectItem value="LINEAR">Linéaire</SelectItem>
-                                      <SelectItem value="BOUNCE">Rebond</SelectItem>
-                                   </SelectContent>
-                                </Select>
-                             </div>
-                             <div className="space-y-2">
-                                <Label>Disparition Auto</Label>
-                                <Select onValueChange={setAutoDismiss} defaultValue="0">
-                                   <SelectTrigger><SelectValue placeholder="Jamais" /></SelectTrigger>
-                                   <SelectContent>
-                                      <SelectItem value="0">Jamais</SelectItem>
-                                      <SelectItem value="2">2 secondes</SelectItem>
-                                      <SelectItem value="1">1 seconde</SelectItem>
-                                      <SelectItem value="0.5">0.5 seconde</SelectItem>
-                                   </SelectContent>
-                                </Select>
-                             </div>
-                         </div>
-                         <div className="flex justify-center pt-4">
-                            <Button className="w-full md:w-1/2" onClick={handleStartTimeAttack}>
-                               Démarrer Time Attack
-                            </Button>
-                         </div>
-                      </TabsContent>
-
-                      <TabsContent value="PRECISION" className="space-y-4">
-                         <div className="text-center mb-6 text-muted-foreground">
-                            Éliminez 20 cibles le plus vite possible.
-                         </div>
-                         <div className="flex justify-center">
-                            <Button className="w-full md:w-1/2" onClick={handleStartPrecision}>
-                               Démarrer Precision Run
-                            </Button>
-                         </div>
-                      </TabsContent>
-                    </Tabs>
-                  </CardContent>
-                </Card>
-             </div>
-           )}
-
-           {gameState === 'FINISHED' && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/90 backdrop-blur-md">
-                 <div className="text-center space-y-6 animate-in zoom-in-50 duration-300">
-                    <h2 className="text-5xl font-black text-primary">Terminé !</h2>
-                    <div className="grid grid-cols-3 gap-8 text-center">
-                       <div>
-                          <div className="text-sm text-muted-foreground uppercase tracking-wider">Score</div>
-                          <div className="text-4xl font-bold">{stats.score}</div>
-                       </div>
-                       <div>
-                          <div className="text-sm text-muted-foreground uppercase tracking-wider">Précision</div>
-                          <div className="text-4xl font-bold">{stats.totalClicks > 0 ? Math.round((stats.score / stats.totalClicks) * 100) : 0}%</div>
-                       </div>
-                       <div>
-                          <div className="text-sm text-muted-foreground uppercase tracking-wider">Temps</div>
-                          <div className="text-4xl font-bold">{((stats.endTime - stats.startTime) / 1000).toFixed(2)}s</div>
-                       </div>
-                    </div>
-                    <Button size="lg" onClick={resetGame} className="mt-8">
-                       Rejouer
-                    </Button>
-                 </div>
+          {gameState === 'FINISHED' && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/95 backdrop-blur-md rounded-2xl animate-in fade-in duration-500">
+              <div className="text-center w-full max-w-3xl p-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center mb-12">
+                  <div className="space-y-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Score</div>
+                    <div className="text-6xl font-bold text-primary font-mono">{stats.score}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Accuracy</div>
+                    <div className="text-4xl font-bold font-mono">{currentAccuracy}%</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Total Time</div>
+                    <div className="text-4xl font-bold font-mono tabular-nums">{((stats.endTime - stats.startTime) / 1000).toFixed(2)}s</div>
+                  </div>
+                </div>
+                <Button onClick={resetGame} size="lg" className="rounded-full px-8 font-mono uppercase tracking-widest">
+                  TRY AGAIN
+                </Button>
               </div>
-           )}
+            </div>
+          )}
 
-           <div 
-             ref={containerRef}
-             className="w-full h-full bg-secondary/20 rounded-xl overflow-hidden relative cursor-crosshair border border-border/50 shadow-inner touch-none"
-             onPointerDown={handleContainerPointerDown}
-           >
-              {targets.map(target => (
-                 <div
-                   key={target.id}
-                   className={cn(
-                     "absolute rounded-full shadow-lg transition-transform active:scale-95",
-                     "bg-gradient-to-br from-primary to-primary/80 border-2 border-primary-foreground/20"
-                   )}
-                   style={{
-                      left: target.x,
-                      top: target.y,
-                      width: target.radius * 2,
-                      height: target.radius * 2,
-                      transform: 'translate(-50%, -50%)',
-                   }}
-                   onPointerDown={(e) => handleTargetPointerDown(e, target.id)}
-                 />
-              ))}
+          <div 
+            ref={containerRef}
+            className={cn(
+              "w-full h-full rounded-2xl border transition-all duration-500 relative cursor-crosshair overflow-hidden touch-none",
+              gameState === 'PLAYING' ? "bg-zinc-950 border-primary/30 shadow-inner" : "bg-secondary/10 border-border/50"
+            )}
+            onPointerDown={handleContainerPointerDown}
+          >
+            {targets.map(target => (
+              <div
+                key={target.id}
+                className={cn(
+                  "absolute rounded-full transition-transform active:scale-90 duration-75",
+                  "bg-primary/20 border-2 border-primary shadow-[0_0_15px_rgba(var(--primary),0.3)]"
+                )}
+                style={{
+                  left: target.x,
+                  top: target.y,
+                  width: target.radius * 2,
+                  height: target.radius * 2,
+                  transform: 'translate(-50%, -50%)',
+                }}
+                onPointerDown={(e) => handleTargetPointerDown(e, target.id)}
+              >
+                <div className="absolute inset-0 m-auto w-1.5 h-1.5 bg-primary rounded-full" />
+              </div>
+            ))}
 
-              {clickEffects.map(effect => (
-                <div
-                  key={effect.id}
-                  className="absolute rounded-full border-2 border-primary/50 pointer-events-none animate-ripple"
-                  style={{
-                    left: effect.x,
-                    top: effect.y,
-                    transform: 'translate(-50%, -50%)',
-                  }}
-                />
-              ))}
-           </div>
+            {clickEffects.map(effect => (
+              <div
+                key={effect.id}
+                className="absolute rounded-full border border-primary/40 pointer-events-none animate-ripple"
+                style={{
+                  left: effect.x,
+                  top: effect.y,
+                  transform: 'translate(-50%, -50%)',
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </Layout>

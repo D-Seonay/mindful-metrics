@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Layout } from "@/components/Layout";
 import {
   generateRandomHSL,
   getLightnessDelta,
@@ -7,21 +8,19 @@ import {
   HSLColor,
 } from "../lib/colorSensitivityUtils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { PerformanceHistory, ColorSensitivityResult } from "@/types/history";
+import { RotateCcw, Eye, Shield, Zap } from "lucide-react";
 
-const INITIAL_TIME = 20; // seconds
+const INITIAL_TIME = 20;
 
 const GRID_DIMENSIONS = [
-  { scoreThreshold: 0, rows: 2, cols: 3 }, // 3x2 = 6 squares
-  { scoreThreshold: 5, rows: 3, cols: 3 }, // 3x3 = 9 squares
-  { scoreThreshold: 10, rows: 4, cols: 4 }, // 4x4 = 16 squares
-  { scoreThreshold: 20, rows: 5, cols: 5 }, // 5x5 = 25 squares
+  { scoreThreshold: 0, rows: 2, cols: 3 },
+  { scoreThreshold: 5, rows: 3, cols: 3 },
+  { scoreThreshold: 10, rows: 4, cols: 4 },
+  { scoreThreshold: 20, rows: 5, cols: 5 },
 ];
 
 const getGridDimensions = (score: number) => {
@@ -30,7 +29,7 @@ const getGridDimensions = (score: number) => {
       return { rows: GRID_DIMENSIONS[i].rows, cols: GRID_DIMENSIONS[i].cols };
     }
   }
-  return { rows: 2, cols: 3 }; // Default
+  return { rows: 2, cols: 3 };
 };
 
 type Difficulty = "facile" | "normal" | "difficile";
@@ -47,10 +46,10 @@ const ColorSensitivityTest: React.FC = () => {
   const [gameResult, setGameResult] = useState(0);
   const [boardShake, setBoardShake] = useState(false);
   const [isPulsing, setIsPulsing] = useState(false);
-  const [wrongClickIndex, setWrongClickIndex] = useState<number | null>(null); // New state for wrong click feedback
+  const [wrongClickIndex, setWrongClickIndex] = useState<number | null>(null);
 
-  const [difficulty, setDifficulty] = useState<Difficulty>("normal"); // New state for difficulty
-  const [lives, setLives] = useState(0); // New state for lives in Easy mode
+  const [difficulty, setDifficulty] = useState<Difficulty>("normal");
+  const [lives, setLives] = useState(0);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
@@ -63,41 +62,36 @@ const ColorSensitivityTest: React.FC = () => {
       timePerception: [],
       aimTrainer: [],
       colorSensitivity: [],
-      peripheralVision: [], // Initialize new field
+      peripheralVision: [],
     },
   );
 
-  // Effect to save game results
   useEffect(() => {
     if (isGameOver && gameResult > 0) {
       const newResult: ColorSensitivityResult = {
-        id: Date.now().toString(), // Simple unique ID
+        id: Date.now().toString(),
         score: gameResult,
         difficulty: difficulty,
         date: new Date().toISOString(),
       };
       setHistory((prevHistory) => ({
         ...prevHistory,
-        colorSensitivity: [...(prevHistory.colorSensitivity || []), newResult], // Ensure colorSensitivity exists
+        colorSensitivity: [newResult, ...(prevHistory.colorSensitivity || [])].slice(0, 10),
       }));
     }
   }, [isGameOver, gameResult, difficulty, setHistory]);
 
   const generateLevel = useCallback(() => {
     const { rows, cols } = getGridDimensions(score);
-
     const newBaseColor = generateRandomHSL();
     setBaseColor(newBaseColor);
-
     const lightnessDelta = getLightnessDelta(score);
-
     const lighter = Math.random() > 0.5;
     const newOddColor = adjustLightness(
       newBaseColor,
       lighter ? lightnessDelta : -lightnessDelta,
     );
     setOddColor(newOddColor);
-
     setOddIndex(Math.floor(Math.random() * rows * cols));
   }, [score]);
 
@@ -108,13 +102,11 @@ const ColorSensitivityTest: React.FC = () => {
     setIsGameOver(false);
     setIsGameStarted(true);
     setGameResult(0);
-
     if (difficulty === "facile") {
-      setLives(3); // 3 lives for Easy mode
+      setLives(3);
     } else {
-      setLives(0); // No lives for Normal/Hard mode (time-based or instant game over)
+      setLives(0);
     }
-
     generateLevel();
   }, [difficulty, generateLevel]);
 
@@ -124,7 +116,7 @@ const ColorSensitivityTest: React.FC = () => {
     setLevel(0);
     setScore(0);
     setTimeLeft(INITIAL_TIME);
-    setLives(0); // Reset lives as well
+    setLives(0);
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
@@ -138,10 +130,6 @@ const ColorSensitivityTest: React.FC = () => {
             clearInterval(timerRef.current!);
             setIsGameOver(true);
             setGameResult(score);
-            toast({
-              title: "Partie Terminée !",
-              description: `Vous avez atteint le niveau ${score}.`,
-            });
             return 0;
           }
           return prevTime - 1;
@@ -150,13 +138,10 @@ const ColorSensitivityTest: React.FC = () => {
     } else if (timerRef.current) {
       clearInterval(timerRef.current);
     }
-
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
+      if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isGameStarted, isGameOver, score, difficulty, toast]); // Add difficulty to dependency array
+  }, [isGameStarted, isGameOver, score, difficulty]);
 
   useEffect(() => {
     if (isGameStarted && !isGameOver) {
@@ -169,210 +154,181 @@ const ColorSensitivityTest: React.FC = () => {
       if (isGameOver || !isGameStarted) return;
 
       if (index === oddIndex) {
-        // Correct click
         setLevel((prevLevel) => prevLevel + 1);
         setScore((prevScore) => prevScore + 1);
-        setTimeLeft((prevTime) => prevTime + (score < 10 ? 2 : 1));
-
+        if (difficulty !== "facile") {
+          setTimeLeft((prevTime) => prevTime + (score < 10 ? 2 : 1));
+        }
         setIsPulsing(true);
         setTimeout(() => setIsPulsing(false), 300);
-
-        toast({
-          title: "Correct !",
-          duration: 500,
-        });
       } else {
-        // Wrong click
         if (difficulty === "difficile") {
           setIsGameOver(true);
           setGameResult(score);
-          toast({
-            title: "Partie Terminée !",
-            description: "Mode Difficile : une erreur et c'est perdu !",
-            variant: "destructive",
-          });
         } else if (difficulty === "facile") {
-          setLives((prevLives) => prevLives - 1);
-          if (lives - 1 <= 0) {
-            setIsGameOver(true);
-            setGameResult(score);
-            toast({
-              title: "Partie Terminée !",
-              description: `Vous avez atteint le niveau ${score}.`,
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Incorrect !",
-              description: `Il vous reste ${lives - 1} vies.`,
-              variant: "destructive",
-              duration: 500,
-            });
-          }
-        } else {
-          // Normal mode (time-based penalty)
-          setTimeLeft((prevTime) => Math.max(0, prevTime - 3));
-          toast({
-            title: "Incorrect !",
-            description: "-3 secondes",
-            variant: "destructive",
-            duration: 500,
+          setLives((prevLives) => {
+            const nextLives = prevLives - 1;
+            if (nextLives <= 0) {
+              setIsGameOver(true);
+              setGameResult(score);
+              return 0;
+            }
+            return nextLives;
           });
+        } else {
+          setTimeLeft((prevTime) => Math.max(0, prevTime - 3));
         }
-
         setBoardShake(true);
         setTimeout(() => setBoardShake(false), 500);
-
-        setWrongClickIndex(index); // Set the index of the incorrectly clicked square
-        setTimeout(() => setWrongClickIndex(null), 500); // Clear the wrong click feedback after animation
+        setWrongClickIndex(index);
+        setTimeout(() => setWrongClickIndex(null), 500);
       }
     },
-    [oddIndex, isGameOver, isGameStarted, score, difficulty, lives, toast], // Removed wrongClickIndex from dependencies
+    [oddIndex, isGameOver, isGameStarted, score, difficulty],
   );
 
   const renderGrid = () => {
     if (!baseColor || !oddColor) return null;
-
     const { rows, cols } = getGridDimensions(score);
     const totalSquares = rows * cols;
     const squares = [];
     for (let i = 0; i < totalSquares; i++) {
       const color = i === oddIndex ? oddColor : baseColor;
       squares.push(
-                  <button
-                    key={i}
-                    className={cn(
-                      "aspect-square rounded-xl transition-transform duration-100 hover:scale-[0.98]",
-                      "border-4 border-transparent", // Default transparent border
-                      i === wrongClickIndex && "border-red-500", // Apply red border if this is the wrong clicked square
-                    )}
-                    style={{ backgroundColor: hslToString(color) }}
-                    onClick={() => handleSquareClick(i)}
-                    aria-label={`Carré de couleur ${i + 1}`}
-                  />,
+        <button
+          key={i}
+          className={cn(
+            "aspect-square rounded-xl transition-all duration-100 hover:scale-[0.98]",
+            "border-4 border-transparent shadow-sm",
+            i === wrongClickIndex && "border-destructive animate-shake",
+          )}
+          style={{ backgroundColor: hslToString(color) }}
+          onClick={() => handleSquareClick(i)}
+        />,
       );
     }
-
     return (
       <div
         className={cn(
-          "grid w-full gap-3 transition-all duration-100 ease-out",
-          boardShake && "animate-shake",
-          isPulsing && "animate-pulse-green",
+          "grid w-full gap-3 transition-all duration-300 ease-out max-w-md mx-auto",
+          isPulsing && "scale-[1.02]",
         )}
-        style={{
-          gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          width: '100%',
-        }}
+        style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
       >
         {squares}
       </div>
     );
   };
 
-  return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center p-4">
-      <Card className="w-full max-w-lg mx-auto">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Test de Sensibilité aux Couleurs</CardTitle>
-          <p className="text-muted-foreground">Trouvez la nuance de couleur légèrement différente</p>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center space-y-6 p-4">
-          {!isGameStarted && !isGameOver && (
-            <div className="text-center space-y-4">
-              <p className="mb-4 text-lg">Cliquez sur le carré qui a une nuance différente.</p>
-              <div className="flex flex-col items-center space-y-2">
-                <p className="font-semibold">Choisissez la difficulté :</p>
-                <RadioGroup
-                  defaultValue={difficulty}
-                  onValueChange={(value: Difficulty) => setDifficulty(value)}
-                  className="flex space-x-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="facile" id="r1" />
-                    <Label htmlFor="r1">Facile (3 vies)</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="normal" id="r2" />
-                    <Label htmlFor="r2">Normal (temps)</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="difficile" id="r3" />
-                    <Label htmlFor="r3">Difficile (1 erreur)</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-              <Button onClick={startGame} size="lg" className="mt-4">
-                Commencer le jeu
-              </Button>
-            </div>
-          )}
+  const bestScore = history.colorSensitivity?.length > 0 
+    ? Math.max(...history.colorSensitivity.map(r => r.score))
+    : 0;
 
-          {(isGameStarted && !isGameOver) && (
-            <>
-              <div className="flex w-full justify-between px-4 text-xl font-semibold">
-                <span>Niveau: {level}</span>
-                {difficulty === "facile" ? (
-                  <span>Vies: {lives}</span>
-                ) : (
-                  <span>Temps: {timeLeft}s</span>
-                )}
-              </div>
-              <div
-                className={cn(
-                  "relative flex items-center justify-center rounded-xl border-4 border-transparent p-2 w-full max-w-[400px] aspect-square mx-auto",
-                )}
+  return (
+    <Layout>
+      <div className="container max-w-5xl mx-auto px-4 py-12 flex flex-col h-[calc(100vh-4rem)]">
+        {/* Compact Settings Bar */}
+        <div className={cn(
+          "flex items-center justify-center gap-4 mb-12 p-2 rounded-xl bg-secondary/20 border border-border/50 transition-opacity duration-300",
+          isGameStarted ? "opacity-0 pointer-events-none" : "opacity-100"
+        )}>
+          <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest px-2 border-r border-border/50">Difficulty</span>
+          <div className="flex gap-1">
+            {(["facile", "normal", "difficile"] as Difficulty[]).map(opt => (
+              <Button 
+                key={opt} 
+                variant={difficulty === opt ? 'secondary' : 'ghost'} 
+                size="sm"
+                onClick={() => setDifficulty(opt)}
+                className="h-8 px-3 text-xs font-mono uppercase"
               >
-                {renderGrid()}
-              </div>
-            </>
+                {opt}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* HUD Stats */}
+        <div className="flex justify-start gap-12 mb-8 font-mono">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Level</span>
+            <span className="text-2xl font-bold tabular-nums">
+              {level}
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">
+              {difficulty === "facile" ? "Lives" : "Time"}
+            </span>
+            <span className={cn(
+              "text-2xl font-bold tabular-nums",
+              (difficulty !== "facile" && timeLeft <= 5) ? "text-destructive animate-pulse" : "text-primary"
+            )}>
+              {difficulty === "facile" ? lives : `${timeLeft}s`}
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Best</span>
+            <span className="text-2xl font-bold tabular-nums">
+              {bestScore}
+            </span>
+          </div>
+          <div className="ml-auto flex items-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetGame}
+              className="h-8 px-3 text-xs font-mono text-muted-foreground hover:text-foreground"
+            >
+              <RotateCcw className="h-3 w-3 mr-2" />
+              RESTART
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex-1 relative">
+          {!isGameStarted && !isGameOver && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-zinc-950/10 rounded-2xl">
+              <Button onClick={startGame} size="lg" className="rounded-full px-12 h-16 font-mono text-lg uppercase tracking-[0.2em] shadow-2xl">
+                START TEST
+              </Button>
+              <p className="mt-6 text-xs font-mono text-muted-foreground uppercase tracking-widest">Find the slightly different shade</p>
+            </div>
           )}
 
           {isGameOver && (
-            <div className="text-center">
-              <h3 className="mb-2 text-2xl font-bold">Partie Terminée !</h3>
-              <p className="mb-4 text-xl">Vous avez atteint le niveau : {gameResult}</p>
-              <Button onClick={startGame} size="lg">
-                Réessayer
-              </Button>
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/95 backdrop-blur-md rounded-2xl animate-in fade-in duration-500">
+              <div className="text-center w-full max-w-3xl p-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center mb-12">
+                  <div className="space-y-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Level Reached</div>
+                    <div className="text-6xl font-bold text-primary font-mono">{gameResult}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Difficulty</div>
+                    <div className="text-4xl font-bold font-mono uppercase">{difficulty}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Personal Best</div>
+                    <div className="text-4xl font-bold font-mono tabular-nums">{bestScore}</div>
+                  </div>
+                </div>
+                <Button onClick={startGame} size="lg" className="rounded-full px-8 font-mono uppercase tracking-widest">
+                  TRY AGAIN
+                </Button>
+              </div>
             </div>
           )}
-        </CardContent>
-      </Card>
 
-      <style>
-        {`
-        @keyframes shake {
-          0% { transform: translateX(0); }
-          10% { transform: translateX(-5px); }
-          20% { transform: translateX(5px); }
-          30% { transform: translateX(-5px); }
-          40% { transform: translateX(5px); }
-          50% { transform: translateX(-5px); }
-          60% { transform: translateX(5px); }
-          70% { transform: translateX(-5px); }
-          80% { transform: translateX(5px); }
-          90% { transform: translateX(-5px); }
-          100% { transform: translateX(0); }
-        }
-        .animate-shake {
-          animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-          transform: translate3d(0, 0, 0);
-          backface-visibility: hidden;
-          perspective: 1000px;
-        }
-
-        @keyframes pulse-green {
-          0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-          70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-        }
-        .animate-pulse-green {
-          animation: pulse-green 0.5s ease-out;
-        }
-        `}
-      </style>
-    </div>
+          <div className={cn(
+            "w-full h-full rounded-2xl border transition-all duration-500 flex items-center justify-center p-8",
+            isGameStarted ? "bg-zinc-950 border-primary/20 shadow-inner" : "bg-secondary/10 border-border/50"
+          )}>
+            {renderGrid()}
+          </div>
+        </div>
+      </div>
+    </Layout>
   );
 };
 
