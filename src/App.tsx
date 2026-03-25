@@ -12,7 +12,6 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import ColorSensitivityTest from "./pages/ColorSensitivityTest";
 import PeripheralVision from "./pages/PeripheralVision";
-import { Layout } from "./components/Layout";
 
 const queryClient = new QueryClient();
 
@@ -24,13 +23,13 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/reflexes" element={<Layout><ReflexTest /></Layout>} />
-          <Route path="/typing" element={<Layout><TypingTest /></Layout>} />
-          <Route path="/time-perception" element={<Layout><TimePerceptionTest /></Layout>} />
-          <Route path="/aim-trainer" element={<Layout><AimTrainer /></Layout>} />
-          <Route path="/profile" element={<Layout><Profile /></Layout>} />
-          <Route path="/color-vision" element={<Layout><ColorSensitivityTest /></Layout>} />
-          <Route path="/peripheral-vision" element={<Layout><PeripheralVision /></Layout>} />
+          <Route path="/reflexes" element={<ReflexTest />} />
+          <Route path="/typing" element={<TypingTest />} />
+          <Route path="/time-perception" element={<TimePerceptionTest />} />
+          <Route path="/aim-trainer" element={<AimTrainer />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/color-vision" element={<ColorSensitivityTest />} />
+          <Route path="/peripheral-vision" element={<PeripheralVision />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
