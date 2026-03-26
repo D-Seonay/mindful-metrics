@@ -38,4 +38,18 @@ describe('CircleMemoryTest', () => {
     // In guess phase, we should see "Teinte"
     expect(screen.getByText(/teinte/i)).toBeInTheDocument();
   });
+
+  it('skips memorization phase when pressing Space key', async () => {
+    render(<CircleMemoryTest />);
+    
+    // Start game
+    fireEvent.click(screen.getByRole('button', { name: /démarrer le test/i }));
+    
+    // Press Space
+    fireEvent.keyDown(window, { key: ' ', code: 'Space' });
+    
+    // Should transition to guess phase
+    expect(screen.queryByText(/^mémorisation$/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/teinte/i)).toBeInTheDocument();
+  });
 });

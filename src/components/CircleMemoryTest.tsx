@@ -68,6 +68,18 @@ const CircleMemoryTest: React.FC = () => {
   }, [startRound]);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === ' ' && gameState === 'memorize') {
+        e.preventDefault();
+        handleSkipMemorize();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameState, handleSkipMemorize]);
+
+  useEffect(() => {
     if (gameState === 'memorize' && timeLeft > 0) {
       timerRef.current = setTimeout(() => setTimeLeft(prev => prev - 1), 1000);
     } else if (gameState === 'memorize' && timeLeft === 0) {
