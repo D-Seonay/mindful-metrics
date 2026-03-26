@@ -22,6 +22,7 @@ const initialHistory: PerformanceHistory = {
   timePerception: [],
   aimTrainer: [],
   colorSensitivity: [],
+  colorMemory: [],
   peripheralVision: []
 };
 

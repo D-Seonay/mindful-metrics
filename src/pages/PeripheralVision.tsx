@@ -234,7 +234,7 @@ export default function PeripheralVision() {
         <div 
           ref={containerRef}
           className={cn(
-            "flex-1 relative rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden cursor-crosshair transition-colors duration-500",
+            "flex-1 relative rounded-2xl bg-background border border-border/50 overflow-hidden cursor-crosshair transition-colors duration-500",
             gameState === 'finished' && "bg-secondary/10 border-border/50"
           )}
           onContextMenu={handlePreventDefault}

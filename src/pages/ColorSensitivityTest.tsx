@@ -322,7 +322,7 @@ const ColorSensitivityTest: React.FC = () => {
 
           <div className={cn(
             "w-full h-full rounded-2xl border transition-all duration-500 flex items-center justify-center p-4 md:p-8",
-            isGameStarted ? "bg-zinc-950 border-primary/20 shadow-inner" : "bg-secondary/10 border-border/50"
+            isGameStarted ? "bg-background border-primary/20 shadow-inner" : "bg-secondary/10 border-border/50"
           )}>
             {renderGrid()}
           </div>

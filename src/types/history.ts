@@ -35,6 +35,13 @@ export interface ColorSensitivityResult {
   date: string; // ISO string
 }
 
+export interface ColorMemoryResult {
+  id: string;
+  score: number; // level reached
+  accuracy: number; // percentage of correct clicks
+  date: string; // ISO string
+}
+
 export interface PeripheralVisionResult {
   id: string;
   averageTime: number; // in milliseconds
@@ -53,6 +60,8 @@ export type AimTrainerHistory = AimTrainerResult[];
 
 export type ColorSensitivityHistory = ColorSensitivityResult[];
 
+export type ColorMemoryHistory = ColorMemoryResult[];
+
 export type PeripheralVisionHistory = PeripheralVisionResult[];
 
 export interface PerformanceHistory {
@@ -61,5 +70,6 @@ export interface PerformanceHistory {
   timePerception: TimePerceptionHistory;
   aimTrainer: AimTrainerHistory;
   colorSensitivity: ColorSensitivityHistory;
+  colorMemory: ColorMemoryHistory;
   peripheralVision: PeripheralVisionHistory;
 }

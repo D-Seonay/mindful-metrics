@@ -169,7 +169,7 @@ export default function TimePerceptionTest() {
               className={cn(
                 "relative h-[400px] lg:h-[500px] rounded-2xl border border-border/50 transition-all duration-500 flex flex-col items-center justify-center overflow-hidden",
                 gameState === 'idle' && "bg-secondary/10",
-                gameState === 'running' && "bg-zinc-950 border-primary/30"
+                gameState === 'running' && "bg-background border-primary/30 shadow-inner"
               )}
             >
               <button

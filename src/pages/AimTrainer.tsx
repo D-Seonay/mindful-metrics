@@ -282,7 +282,7 @@ export default function AimTrainer() {
             ref={containerRef}
             className={cn(
               "w-full h-full rounded-2xl border transition-all duration-500 relative cursor-crosshair overflow-hidden touch-none",
-              gameState === 'PLAYING' ? "bg-zinc-950 border-primary/30 shadow-inner" : "bg-secondary/10 border-border/50"
+              gameState === 'PLAYING' ? "bg-background border-primary/30 shadow-inner" : "bg-secondary/10 border-border/50"
             )}
             onPointerDown={handleContainerPointerDown}
           >

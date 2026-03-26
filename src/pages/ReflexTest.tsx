@@ -197,7 +197,7 @@ export default function ReflexTest() {
               className={cn(
                 "relative h-[400px] lg:h-[500px] rounded-2xl border border-border/50 transition-all duration-500 flex flex-col items-center justify-center cursor-pointer overflow-hidden",
                 gameState === 'idle' && "bg-secondary/10",
-                gameState === 'waiting' && "bg-zinc-950",
+                gameState === 'waiting' && "bg-background shadow-inner",
                 gameState === 'ready' && "bg-emerald-500/20 border-emerald-500/50",
                 gameState === 'result' && "bg-secondary/20"
               )}
