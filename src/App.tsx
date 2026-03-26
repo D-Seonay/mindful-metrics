@@ -12,6 +12,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import ColorSensitivityTest from "./pages/ColorSensitivityTest";
 import ColorMemory from "./pages/ColorMemory";
+import CircleMemory from "./pages/CircleMemory";
 import PeripheralVision from "./pages/PeripheralVision";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/color-vision" element={<ColorSensitivityTest />} />
           <Route path="/color-memory" element={<ColorMemory />} />
+          <Route path="/circle-memory" element={<CircleMemory />} />
           <Route path="/peripheral-vision" element={<PeripheralVision />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

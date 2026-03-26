@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import type { PerformanceHistory, ReflexResult, TypingResult, TimePerceptionResult, AimTrainerResult, ColorSensitivityResult, PeripheralVisionResult, ColorMemoryResult } from "@/types/history";
-import { Zap, Keyboard, Hourglass, MousePointerClick, Eye, Target, Brain } from "lucide-react";
+import type { PerformanceHistory, ReflexResult, TypingResult, TimePerceptionResult, AimTrainerResult, ColorSensitivityResult, PeripheralVisionResult, ColorMemoryResult, CircleMemoryResult } from "@/types/history";
+import { Zap, Keyboard, Hourglass, MousePointerClick, Eye, Target, Brain, Circle } from "lucide-react";
 import { StatsDetailDialog } from "./StatsDetailDialog";
 import { ActivityHeatmap } from "./ActivityHeatmap";
 
@@ -12,6 +12,7 @@ const initialHistory: PerformanceHistory = {
   aimTrainer: [],
   colorSensitivity: [],
   colorMemory: [],
+  circleMemory: [],
   peripheralVision: []
 };
 
@@ -81,6 +82,17 @@ export function StatsOverview() {
       };
     };
 
+    // --- Circle Memory Helpers ---
+    const circleMemoryStats = () => {
+      if (!history.circleMemory?.length) return { best: "-", avg: "-" };
+      const best = Math.max(...history.circleMemory.map(r => r.score));
+      const avg = Math.round(history.circleMemory.reduce((a, b) => a + b.score, 0) / history.circleMemory.length);
+      return {
+        best: `${best}%`,
+        avg: `${avg}%`,
+      };
+    };
+
     // --- Peripheral Vision Helpers ---
     const peripheralVisionStats = () => {
       if (!history.peripheralVision?.length) return { best: "-", avg: "-", acc: "-" };
@@ -100,6 +112,7 @@ export function StatsOverview() {
     const aStats = aimStats();
     const csStats = colorSensitivityStats();
     const cmStats = colorMemoryStats();
+    const circleStats = circleMemoryStats();
     const pvStats = peripheralVisionStats();
   
     return (
@@ -264,6 +277,33 @@ export function StatsOverview() {
               ]}
               columns={[
                 { header: "Niveau", accessor: (item) => <span className="font-bold">{item.score}</span> },
+                { header: "Date", accessor: (item) => new Date(item.date).toLocaleDateString() },
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Circle Memory */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Circle Memory</CardTitle>
+            <Circle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl md:text-2xl font-bold">{circleStats.best}</div>
+            <p className="text-xs text-muted-foreground mb-2 md:mb-4">
+               {history.circleMemory?.length || 0} tests effectués
+            </p>
+            <StatsDetailDialog<CircleMemoryResult>
+              title="Historique Circle Memory"
+              description="Mémorisation spatiale et chromatique."
+              data={history.circleMemory || []}
+              stats={[
+                { label: "Meilleur Score", value: circleStats.best },
+                { label: "Score Moyen", value: circleStats.avg },
+              ]}
+              columns={[
+                { header: "Score", accessor: (item) => <span className="font-bold">{item.score}%</span> },
                 { header: "Date", accessor: (item) => new Date(item.date).toLocaleDateString() },
               ]}
             />
