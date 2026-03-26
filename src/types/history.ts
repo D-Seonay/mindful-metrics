@@ -42,6 +42,12 @@ export interface ColorMemoryResult {
   date: string; // ISO string
 }
 
+export interface CircleMemoryResult {
+  id: string;
+  score: number; // 0-100
+  date: string; // ISO string
+}
+
 export interface PeripheralVisionResult {
   id: string;
   averageTime: number; // in milliseconds
@@ -62,6 +68,8 @@ export type ColorSensitivityHistory = ColorSensitivityResult[];
 
 export type ColorMemoryHistory = ColorMemoryResult[];
 
+export type CircleMemoryHistory = CircleMemoryResult[];
+
 export type PeripheralVisionHistory = PeripheralVisionResult[];
 
 export interface PerformanceHistory {
@@ -71,5 +79,6 @@ export interface PerformanceHistory {
   aimTrainer: AimTrainerHistory;
   colorSensitivity: ColorSensitivityHistory;
   colorMemory: ColorMemoryHistory;
+  circleMemory: CircleMemoryHistory;
   peripheralVision: PeripheralVisionHistory;
 }
