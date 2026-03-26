@@ -53,6 +53,13 @@ const CircleMemoryTest: React.FC = () => {
     playSound('shoot');
   }, [playSound]);
 
+  const handleSkipMemorize = useCallback(() => {
+    if (gameState !== 'memorize') return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setGameState('guess');
+    playSound('type');
+  }, [gameState, playSound]);
+
   const initGame = useCallback(() => {
     setRound(1);
     setRoundScores([]);
@@ -218,6 +225,23 @@ const CircleMemoryTest: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Skip Memorization Button */}
+            {gameState === 'memorize' && (
+              <div className="flex flex-col items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <Button 
+                  variant="outline" 
+                  onClick={handleSkipMemorize}
+                  className="rounded-full px-8 h-12 font-mono text-[10px] uppercase tracking-[0.2em] border-primary/30 hover:bg-primary/10 transition-all duration-300 group"
+                >
+                  <Brain className="mr-2 h-3.5 w-3.5 text-primary/60 group-hover:text-primary" />
+                  Passer la mémorisation
+                </Button>
+                <div className="flex items-center gap-2 text-[8px] font-mono text-muted-foreground uppercase tracking-widest opacity-50">
+                  Appuyez sur <span className="px-1.5 py-0.5 rounded border border-border bg-secondary/30 text-foreground font-bold">Espace</span>
+                </div>
+              </div>
+            )}
 
             {/* Guess Phase Controls */}
             {gameState === 'guess' && (
