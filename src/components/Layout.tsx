@@ -12,43 +12,100 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-const navItems = [
-  { to: "/reflexes", icon: Zap, label: "Réflexes" },
-  { to: "/typing", icon: Keyboard, label: "Vitesse de Frappe" },
-  { to: "/time-perception", icon: Hourglass, label: "Time Perception" },
-  { to: "/aim-trainer", icon: MousePointerClick, label: "Aim Trainer" },
-  { to: "/color-vision", icon: Eye, label: "Couleurs" },
-  { to: "/color-memory", icon: Brain, label: "Mémoire" },
-  { to: "/circle-memory", icon: Circle, label: "Cercle" },
-  { to: "/peripheral-vision", icon: Target, label: "Vision" },
-  { to: "/profile", icon: User, label: "Profil" },
+interface NavItem {
+  to: string;
+  icon: any;
+  label: string;
+}
+
+interface Category {
+  label: string;
+  items: NavItem[];
+}
+
+const categories: Category[] = [
+  {
+    label: "Cognitif",
+    items: [
+      { to: "/reflexes", icon: Zap, label: "Réflexes" },
+      { to: "/time-perception", icon: Hourglass, label: "Time Perception" },
+      { to: "/color-memory", icon: Brain, label: "Mémoire" },
+    ]
+  },
+  {
+    label: "Précision",
+    items: [
+      { to: "/aim-trainer", icon: MousePointerClick, label: "Aim Trainer" },
+      { to: "/peripheral-vision", icon: Target, label: "Vision" },
+    ]
+  },
+  {
+    label: "Frappe",
+    items: [
+      { to: "/typing", icon: Keyboard, label: "Frappe" },
+    ]
+  },
+  {
+    label: "Couleurs",
+    items: [
+      { to: "/color-vision", icon: Eye, label: "Couleurs" },
+      { to: "/circle-memory", icon: Circle, label: "Cercle" },
+
+    ]
+  }
 ];
+
+const profileItem = { to: "/profile", icon: User, label: "Profil" };
 
 export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
         <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                    isActive
-                      ? "bg-secondary text-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                  )
-                }
-              >
-                <item.icon className="h-4 w-4" />
-                <span>{item.label}</span>
-              </NavLink>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-4 lg:gap-6">
+            {categories.map((cat) => (
+              <div key={cat.label} className="flex items-center gap-1 group">
+                <div className="flex items-center gap-0.5 p-1 rounded-xl bg-secondary/20 border border-border/40">
+                  {cat.items.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={({ isActive }) =>
+                        cn(
+                          "flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap",
+                          isActive
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground hover:bg-secondary/80"
+                        )
+                      }
+                      title={`${cat.label}: ${item.label}`}
+                    >
+                      <item.icon className="h-3.5 w-3.5" />
+                      <span className="hidden lg:inline">{item.label}</span>
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
             ))}
+            <div className="h-6 w-px bg-border/50 mx-2" />
+            <NavLink
+              to={profileItem.to}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                  isActive
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                )
+              }
+            >
+              <profileItem.icon className="h-4 w-4" />
+              <span>{profileItem.label}</span>
+            </NavLink>
           </div>
 
+          {/* Mobile Navigation */}
           <div className="md:hidden">
             <Sheet>
               <SheetTrigger asChild>
@@ -57,26 +114,49 @@ export function Layout({ children }: LayoutProps) {
                   <span className="sr-only">Menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left">
+              <SheetContent side="left" className="w-[300px] sm:w-[350px]">
                 <SheetTitle className="sr-only">Menu de navigation</SheetTitle>
-                <div className="flex flex-col gap-2 mt-8">
-                  {navItems.map((item) => (
+                <div className="flex flex-col gap-6 mt-8 px-2 overflow-y-auto max-h-[calc(100vh-8rem)]">
+                  {categories.map((cat) => (
+                    <div key={cat.label} className="flex flex-col gap-2">
+                      <h3 className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-[0.3em] px-4">{cat.label}</h3>
+                      <div className="flex flex-col gap-1">
+                        {cat.items.map((item) => (
+                          <NavLink
+                            key={item.to}
+                            to={item.to}
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all",
+                                isActive
+                                  ? "bg-primary/10 text-primary border border-primary/20"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                              )
+                            }
+                          >
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.label}</span>
+                          </NavLink>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  <div className="mt-4 pt-4 border-t border-border/50">
                     <NavLink
-                      key={item.to}
-                      to={item.to}
+                      to={profileItem.to}
                       className={({ isActive }) =>
                         cn(
-                          "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                          "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
                           isActive
                             ? "bg-secondary text-foreground"
                             : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                         )
                       }
                     >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.label}</span>
+                      <profileItem.icon className="h-4 w-4" />
+                      <span>{profileItem.label}</span>
                     </NavLink>
-                  ))}
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
