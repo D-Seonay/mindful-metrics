@@ -1,6 +1,7 @@
 import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { Footer } from "@/components/landing/Footer";
+...
 
 /**
  * Note: Components using 'react-router-dom' hooks like 'useNavigate' 
