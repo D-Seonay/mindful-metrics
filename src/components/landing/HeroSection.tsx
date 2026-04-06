@@ -1,9 +1,23 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Activity } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export function HeroSection() {
-  const navigate = useNavigate();
+  const [isClient, setIsClient] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const navigateTo = (path: string) => {
+    if (isClient) {
+      router.push(path);
+    }
+  };
 
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-slate-950 px-4 pt-16">
@@ -36,7 +50,7 @@ export function HeroSection() {
           <Button 
             size="lg" 
             className="w-full sm:w-auto text-lg px-8 py-6 bg-blue-600 hover:bg-blue-800 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] border-0"
-            onClick={() => navigate('/reflexes')}
+            onClick={() => navigateTo('/reflexes')}
           >
             Start Measuring
             <Activity className="ml-2 h-5 w-5" />
@@ -46,7 +60,7 @@ export function HeroSection() {
             variant="outline" 
             size="lg"
             className="w-full sm:w-auto text-lg px-8 py-6 bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-900 hover:text-white"
-            onClick={() => navigate('/profile')}
+            onClick={() => navigateTo('/profile')}
           >
             View Dashboard
             <ArrowRight className="ml-2 h-5 w-5" />
@@ -56,3 +70,4 @@ export function HeroSection() {
     </section>
   );
 }
+
