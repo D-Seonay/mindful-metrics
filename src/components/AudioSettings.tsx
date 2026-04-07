@@ -1,7 +1,10 @@
+"use client";
+
 import { Volume2, VolumeX } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { useSoundSystem } from "@/hooks/useSoundSystem";
+import { useEffect, useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -10,6 +13,19 @@ import {
 
 export function AudioSettings() {
   const { volume, setVolume, isMuted, toggleMute } = useSoundSystem();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <Button variant="ghost" size="icon" className="h-9 w-9" disabled>
+        <Volume2 className="h-4 w-4" />
+      </Button>
+    );
+  }
 
   return (
     <Popover>

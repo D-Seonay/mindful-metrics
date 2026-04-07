@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Layout } from '@/components/Layout';
+
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useSoundSystem } from '@/hooks/useSoundSystem';
 import { getRandomText, getRandomWords } from '@/lib/typingTexts';
@@ -19,6 +19,8 @@ const initialHistory: PerformanceHistory = {
   timePerception: [],
   aimTrainer: [],
   colorSensitivity: [],
+  colorMemory: [],
+  circleMemory: [],
   peripheralVision: []
 };
 
@@ -251,7 +253,7 @@ export default function TypingTest() {
   const t = translations[language];
 
   return (
-    <Layout>
+    
       <div className="container max-w-5xl mx-auto px-4 py-12">
         {/* Compact Settings Bar */}
         <div className={cn(
@@ -450,6 +452,6 @@ export default function TypingTest() {
           )}
         </div>
       </div>
-    </Layout>
+    
   );
 }

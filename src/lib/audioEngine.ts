@@ -8,6 +8,7 @@ class AudioEngine {
   private volume: number = 0.5;
 
   constructor() {
+    if (typeof window === "undefined") return;
     // Lazy initialization to handle auto-play policy
     try {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;

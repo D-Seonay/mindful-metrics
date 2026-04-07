@@ -4,6 +4,7 @@ import type { PerformanceHistory, ReflexResult, TypingResult, TimePerceptionResu
 import { Zap, Keyboard, Hourglass, MousePointerClick, Eye, Target, Brain, Circle } from "lucide-react";
 import { StatsDetailDialog } from "./StatsDetailDialog";
 import { ActivityHeatmap } from "./ActivityHeatmap";
+import { useEffect, useState } from "react";
 
 const initialHistory: PerformanceHistory = {
   reflex: [],
@@ -18,6 +19,22 @@ const initialHistory: PerformanceHistory = {
 
 export function StatsOverview() {
   const [history] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <ActivityHeatmap />
+        {[...Array(7)].map((_, i) => (
+          <Card key={i} className="animate-pulse bg-secondary/20 h-32" />
+        ))}
+      </div>
+    );
+  }
 
   // --- Reflex Helpers ---
   const reflexStats = () => {

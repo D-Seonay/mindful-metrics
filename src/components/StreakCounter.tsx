@@ -1,6 +1,7 @@
 import { Flame } from 'lucide-react';
 import { useDailyStreak } from '@/hooks/useDailyStreak';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 import {
   Tooltip,
   TooltipContent,
@@ -10,8 +11,13 @@ import {
 
 export function StreakCounter() {
   const { streak } = useDailyStreak();
+  const [mounted, setMounted] = useState(false);
 
-  if (streak === 0) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || streak === 0) return null;
 
   return (
     <TooltipProvider>

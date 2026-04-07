@@ -23,6 +23,7 @@ const CircleMemoryTest: React.FC = () => {
   const [roundScores, setRoundScores] = useState<number[]>([]);
   const [currentRoundScore, setCurrentRoundScore] = useState(0);
   const [finalScore, setFinalScore] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
   
   const { playSound } = useSoundSystem();
   const { toast } = useToast();
@@ -38,6 +39,10 @@ const CircleMemoryTest: React.FC = () => {
     circleMemory: [],
     peripheralVision: [],
   });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const startRound = useCallback(() => {
     const newColor: HSLColor = {
@@ -149,6 +154,14 @@ const CircleMemoryTest: React.FC = () => {
       saveFinalResult(average);
     }
   };
+
+  if (!mounted) {
+    return (
+      <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
+        <div className="w-full h-[600px] rounded-[3rem] border border-border/50 bg-secondary/10 animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col items-center">

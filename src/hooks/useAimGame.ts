@@ -173,7 +173,7 @@ export function useAimGame() {
         // Movement
         if (config.movement === 'STATIC') return t;
 
-        const { x, y, vx, vy, radius } = t;
+        let { x, y, vx, vy, radius } = t;
         const { width, height } = gameAreaRef.current;
 
         x += vx * deltaTime;

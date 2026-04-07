@@ -1,4 +1,4 @@
-import { Layout } from "@/components/Layout";
+
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { StatsOverview } from "@/components/profile/StatsOverview";
 import { PreferencesSettings } from "@/components/profile/PreferencesSettings";
@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Profile() {
   return (
-    <Layout>
+    
        <div className="container mx-auto px-4 py-8 max-w-5xl">
           <h1 className="text-3xl font-bold mb-6">Mon Profil</h1>
           
@@ -27,6 +27,6 @@ export default function Profile() {
             </TabsContent>
           </Tabs>
        </div>
-    </Layout>
+    
   )
 }

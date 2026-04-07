@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Layout } from "@/components/Layout";
+
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +46,7 @@ const ColorMemory: React.FC = () => {
     aimTrainer: [],
     colorSensitivity: [],
     colorMemory: [],
+    circleMemory: [],
     peripheralVision: [],
   });
 
@@ -150,7 +151,7 @@ const ColorMemory: React.FC = () => {
   };
 
   return (
-    <Layout>
+    
       <div className="container max-w-5xl mx-auto px-4 py-8 md:py-12 flex flex-col h-[calc(100vh-4rem)]">
         
         {/* Compact Settings Bar */}
@@ -292,7 +293,7 @@ const ColorMemory: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    
   );
 };
 

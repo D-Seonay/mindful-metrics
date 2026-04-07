@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Layout } from '@/components/Layout';
+
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useSoundSystem } from '@/hooks/useSoundSystem';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,8 @@ const initialHistory: PerformanceHistory = {
   timePerception: [],
   aimTrainer: [],
   colorSensitivity: [],
+  colorMemory: [],
+  circleMemory: [],
   peripheralVision: []
 };
 
@@ -187,7 +189,7 @@ export default function PeripheralVision() {
   };
 
   return (
-    <Layout>
+    
       <div className="container max-w-5xl mx-auto px-4 py-8 flex flex-col min-h-[calc(100vh-8rem)]">
         
         {/* Header & HUD */}
@@ -312,6 +314,6 @@ export default function PeripheralVision() {
           )}
         </div>
       </div>
-    </Layout>
+    
   );
 }

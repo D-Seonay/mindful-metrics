@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Layout } from "@/components/Layout";
+
 import {
   generateRandomHSL,
   getLightnessDelta,
@@ -62,6 +62,8 @@ const ColorSensitivityTest: React.FC = () => {
       timePerception: [],
       aimTrainer: [],
       colorSensitivity: [],
+      colorMemory: [],
+      circleMemory: [],
       peripheralVision: [],
     },
   );
@@ -225,7 +227,7 @@ const ColorSensitivityTest: React.FC = () => {
     : 0;
 
   return (
-    <Layout>
+    
       <div className="container max-w-5xl mx-auto px-4 py-4 md:py-12 flex flex-col h-[calc(100vh-4rem)]">
         {/* Compact Settings Bar */}
         <div className={cn(
@@ -328,7 +330,7 @@ const ColorSensitivityTest: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    
   );
 };
 

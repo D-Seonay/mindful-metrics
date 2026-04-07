@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { eachDayOfInterval, subDays, format, isValid, parseISO, startOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useDailyStreak } from '@/hooks/useDailyStreak';
@@ -11,8 +11,14 @@ import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile
 export function ActivityHeatmap() {
   const { history } = useDailyStreak();
   const isMobile = useIsMobile(); // Use the hook
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const calendarData = useMemo(() => {
+    if (!mounted) return [];
     const today = new Date();
     // Start date is 364 days ago for desktop, 89 days ago (approx 3 months) for mobile
     const daysToShow = isMobile ? 89 : 364; 
@@ -31,7 +37,7 @@ export function ActivityHeatmap() {
         level: getLevel(count)
       };
     });
-  }, [history, isMobile]); // Add isMobile to dependencies
+  }, [history, isMobile, mounted]); // Add mounted to dependencies
 
   // Determine color intensity level (0-4)
   function getLevel(count: number) {
@@ -52,6 +58,19 @@ export function ActivityHeatmap() {
       case 4: return "bg-primary hover:bg-primary/90";
       default: return "bg-muted/40";
     }
+  }
+
+  if (!mounted) {
+    return (
+      <Card className="col-span-full">
+        <CardHeader className="pb-3">
+          <div className="h-6 w-48 bg-secondary/20 animate-pulse rounded" />
+        </CardHeader>
+        <CardContent>
+          <div className="h-[100px] w-full bg-secondary/10 animate-pulse rounded" />
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

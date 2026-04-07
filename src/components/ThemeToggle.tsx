@@ -2,7 +2,8 @@
 
 import { Moon, Sun, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +12,29 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export function ThemeToggle() {
-  const { setTheme, toggleMode, mode } = useTheme();
+  const { setTheme, theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg" disabled>
+          <Sun className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg" disabled>
+          <Palette className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  const toggleMode = () => {
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+  };
 
   return (
     <div className="flex items-center gap-2">

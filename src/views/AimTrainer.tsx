@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Layout } from '@/components/Layout';
+
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -16,6 +16,8 @@ const initialHistory: PerformanceHistory = {
   timePerception: [],
   aimTrainer: [],
   colorSensitivity: [],
+  colorMemory: [],
+  circleMemory: [],
   peripheralVision: []
 };
 
@@ -157,7 +159,7 @@ export default function AimTrainer() {
   const currentAccuracy = stats.totalClicks > 0 ? Math.round((stats.score / stats.totalClicks) * 100) : 0;
 
   return (
-    <Layout>
+    
       <div className="container max-w-5xl mx-auto px-4 py-12 flex flex-col h-[calc(100vh-4rem)]">
         {/* Compact Settings Bar */}
         <div className={cn(
@@ -320,6 +322,6 @@ export default function AimTrainer() {
           </div>
         </div>
       </div>
-    </Layout>
+    
   );
 }

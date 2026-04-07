@@ -15,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useEffect, useState } from "react";
 
 const initialHistory: PerformanceHistory = {
   reflex: [],
@@ -30,6 +31,17 @@ const initialHistory: PerformanceHistory = {
 export function DataManagement() {
   const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', initialHistory);
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <Card className="border-destructive/20 h-48 animate-pulse bg-secondary/10" />
+    );
+  }
 
   const handleExport = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(history, null, 2));

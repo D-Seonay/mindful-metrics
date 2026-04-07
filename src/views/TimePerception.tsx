@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Layout } from '@/components/Layout';
+
 import { cn } from '@/lib/utils';
 import { RotateCcw, Timer, Circle } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -15,6 +15,8 @@ const initialHistory: PerformanceHistory = {
   timePerception: [],
   aimTrainer: [],
   colorSensitivity: [],
+  colorMemory: [],
+  circleMemory: [],
   peripheralVision: []
 };
 
@@ -78,7 +80,7 @@ export default function TimePerceptionTest() {
     : null;
 
   return (
-    <Layout>
+    
       <div className="container max-w-5xl mx-auto px-4 py-12">
         {/* Compact Settings Bar */}
         <div className={cn(
@@ -206,6 +208,6 @@ export default function TimePerceptionTest() {
           )}
         </div>
       </div>
-    </Layout>
+    
   );
 }

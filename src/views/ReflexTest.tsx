@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Layout } from '@/components/Layout';
+
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useKeyboardControls } from '@/hooks/useKeyboardControls';
 import { useSoundSystem } from '@/hooks/useSoundSystem';
@@ -16,6 +16,8 @@ const initialHistory: PerformanceHistory = {
   timePerception: [],
   aimTrainer: [],
   colorSensitivity: [],
+  colorMemory: [],
+  circleMemory: [],
   peripheralVision: []
 };
 
@@ -132,7 +134,7 @@ export default function ReflexTest() {
     : 0;
 
   return (
-    <Layout>
+    
       <div className="container max-w-5xl mx-auto px-4 py-12">
         {/* HUD Stats */}
         <div className="flex justify-start gap-12 mb-8 font-mono">
@@ -248,6 +250,6 @@ export default function ReflexTest() {
           )}
         </div>
       </div>
-    </Layout>
+    
   );
 }
