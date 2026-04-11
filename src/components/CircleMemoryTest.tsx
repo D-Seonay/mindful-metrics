@@ -146,12 +146,6 @@ const CircleMemoryTest: React.FC = () => {
     };
   }, [gameState, timeLeft, playSound]);
 
-  const calculateScore = () => {
-    const distance = calculateOKLCHDistance(userGuessColor, targetColor);
-    const sensitivity = DIFFICULTY_SETTINGS[difficulty].sensitivity;
-    return Math.max(0, Math.round(100 - (distance * sensitivity)));
-  };
-
   const saveFinalResult = (average: number) => {
     const newResult: CircleMemoryResult = {
       id: Date.now().toString(),

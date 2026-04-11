@@ -22,34 +22,34 @@ describe('CircleMemoryTest', () => {
     render(<CircleMemoryTest />);
     
     // Start game
-    const startButton = screen.getByRole('button', { name: /démarrer le test/i });
+    const startButton = screen.getByRole('button', { name: /START_LINK/i });
     fireEvent.click(startButton);
     
     // Should be in memorize phase - check for header
-    expect(screen.getAllByText(/mémorisation/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Mem.Buffer.TTL/i).length).toBeGreaterThan(0);
     
     // Find and click Skip button explicitly by role and name
-    const skipButton = screen.getByRole('button', { name: /passer la mémorisation/i });
+    const skipButton = screen.getByRole('button', { name: /SKIP_BUFFER_MEM/i });
     fireEvent.click(skipButton);
     
     // Should transition to guess phase
-    // In guess phase, the header text "Mémorisation" should be gone (gameState changed)
-    expect(screen.queryByText(/^mémorisation$/i)).not.toBeInTheDocument();
-    // In guess phase, we should see "Teinte"
-    expect(screen.getByText(/teinte/i)).toBeInTheDocument();
+    // In guess phase, the header text "Mem.Buffer.TTL" should be gone (gameState changed)
+    expect(screen.queryByText(/^Mem.Buffer.TTL$/i)).not.toBeInTheDocument();
+    // In guess phase, we should see "HUE_PARAM"
+    expect(screen.getByText(/HUE_PARAM/i)).toBeInTheDocument();
   });
 
   it('skips memorization phase when pressing Space key', async () => {
     render(<CircleMemoryTest />);
     
     // Start game
-    fireEvent.click(screen.getByRole('button', { name: /démarrer le test/i }));
+    fireEvent.click(screen.getByRole('button', { name: /START_LINK/i }));
     
     // Press Space
     fireEvent.keyDown(window, { key: ' ', code: 'Space' });
     
     // Should transition to guess phase
-    expect(screen.queryByText(/^mémorisation$/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/teinte/i)).toBeInTheDocument();
+    expect(screen.queryByText(/^Mem.Buffer.TTL$/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/HUE_PARAM/i)).toBeInTheDocument();
   });
 });
