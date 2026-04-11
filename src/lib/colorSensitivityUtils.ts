@@ -49,7 +49,7 @@ export const calculateOKLCHDistance = (c1: OKLCHColor, c2: OKLCHColor): number =
  * @returns {string} The CSS OKLCH string.
  */
 export const oklchToString = (color: OKLCHColor): string => {
-  return `oklch(${Math.round(color.l * 100)}% ${color.c} ${color.h})`;
+  return `oklch(${(color.l * 100).toFixed(1)}% ${color.c} ${color.h})`;
 };
 
 /**

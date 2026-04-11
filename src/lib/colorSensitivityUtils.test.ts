@@ -26,7 +26,7 @@ describe('colorSensitivityUtils OKLCH', () => {
   describe('oklchToString', () => {
     it('should format OKLCH color as a CSS string', () => {
       const color: OKLCHColor = { l: 0.7, c: 0.2, h: 150 };
-      expect(oklchToString(color)).toBe('oklch(70% 0.2 150)');
+      expect(oklchToString(color)).toBe('oklch(70.0% 0.2 150)');
     });
   });
 });
