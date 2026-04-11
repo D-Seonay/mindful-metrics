@@ -2,23 +2,29 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
-import { hslToString, HSLColor } from '@/lib/colorSensitivityUtils';
-import { RotateCcw, Play, CheckCircle2, Trophy, ArrowRight, Brain } from 'lucide-react';
+import { oklchToString, OKLCHColor, calculateOKLCHDistance } from '@/lib/colorSensitivityUtils';
+import { RotateCcw, Play, CheckCircle2, Trophy, ArrowRight, Brain, Zap } from 'lucide-react';
 import { useSoundSystem } from '@/hooks/useSoundSystem';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { PerformanceHistory, CircleMemoryResult } from '@/types/history';
 import { useToast } from '@/hooks/use-toast';
 
 type GameState = 'idle' | 'memorize' | 'guess' | 'round_result' | 'result';
+type Difficulty = 'easy' | 'normal' | 'elite';
 
-const MEMORIZE_DURATION = 10;
-const TOTAL_ROUNDS = 5;
+const DIFFICULTY_SETTINGS = {
+  easy: { memorizeTime: 15, rounds: 3, sensitivity: 1.5 },
+  normal: { memorizeTime: 10, rounds: 5, sensitivity: 2.5 },
+  elite: { memorizeTime: 5, rounds: 10, sensitivity: 4.0 }
+};
 
 const CircleMemoryTest: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>('idle');
-  const [targetColor, setTargetColor] = useState<HSLColor>({ h: 0, s: 0, l: 0 });
-  const [userGuessColor, setUserGuessColor] = useState<HSLColor>({ h: 180, s: 50, l: 50 });
-  const [timeLeft, setTimeLeft] = useState(MEMORIZE_DURATION);
+  const [difficulty, setDifficulty] = useState<Difficulty>('normal');
+  const [streak, setStreak] = useState(0);
+  const [targetColor, setTargetColor] = useState<OKLCHColor>({ l: 0, c: 0, h: 0 });
+  const [userGuessColor, setUserGuessColor] = useState<OKLCHColor>({ l: 0.5, c: 0.15, h: 180 });
+  const [timeLeft, setTimeLeft] = useState(DIFFICULTY_SETTINGS.normal.memorizeTime);
   const [round, setRound] = useState(1);
   const [roundScores, setRoundScores] = useState<number[]>([]);
   const [currentRoundScore, setCurrentRoundScore] = useState(0);
@@ -45,18 +51,18 @@ const CircleMemoryTest: React.FC = () => {
   }, []);
 
   const startRound = useCallback(() => {
-    const newColor: HSLColor = {
-      h: Math.floor(Math.random() * 360),
-      s: Math.floor(Math.random() * 40) + 40,
-      l: Math.floor(Math.random() * 30) + 35,
+    const newColor: OKLCHColor = {
+      l: 0.5 + Math.random() * 0.3,
+      c: 0.1 + Math.random() * 0.1,
+      h: Math.random() * 360,
     };
     
     setTargetColor(newColor);
     setGameState('memorize');
-    setTimeLeft(MEMORIZE_DURATION);
-    setUserGuessColor({ h: 180, s: 50, l: 50 });
+    setTimeLeft(DIFFICULTY_SETTINGS[difficulty].memorizeTime);
+    setUserGuessColor({ l: 0.6, c: 0.1, h: 180 });
     playSound('shoot');
-  }, [playSound]);
+  }, [playSound, difficulty]);
 
   const handleSkipMemorize = useCallback(() => {
     if (gameState !== 'memorize') return;
@@ -69,6 +75,7 @@ const CircleMemoryTest: React.FC = () => {
     setRound(1);
     setRoundScores([]);
     setFinalScore(null);
+    setStreak(0);
     startRound();
   }, [startRound]);
 
@@ -97,19 +104,9 @@ const CircleMemoryTest: React.FC = () => {
   }, [gameState, timeLeft, playSound]);
 
   const calculateScore = () => {
-    const hDiff = Math.min(
-      Math.abs(userGuessColor.h - targetColor.h),
-      360 - Math.abs(userGuessColor.h - targetColor.h)
-    );
-    const sDiff = Math.abs(userGuessColor.s - targetColor.s);
-    const lDiff = Math.abs(userGuessColor.l - targetColor.l);
-
-    const normalizedH = hDiff / 1.8;
-    const normalizedS = sDiff;
-    const normalizedL = lDiff;
-
-    const avgDistance = (normalizedH + normalizedS + normalizedL) / 3;
-    return Math.max(0, Math.round(100 - avgDistance));
+    const distance = calculateOKLCHDistance(userGuessColor, targetColor);
+    const sensitivity = DIFFICULTY_SETTINGS[difficulty].sensitivity;
+    return Math.max(0, Math.round(100 - (distance * sensitivity)));
   };
 
   const saveFinalResult = (average: number) => {
@@ -138,17 +135,20 @@ const CircleMemoryTest: React.FC = () => {
     setRoundScores(prev => [...prev, score]);
     setGameState('round_result');
     
+    if (score >= 95) setStreak(prev => prev + 1);
+    else setStreak(0);
+    
     if (score > 80) playSound('hit');
     else if (score < 40) playSound('error');
     else playSound('type');
   };
 
   const handleNextRound = () => {
-    if (round < TOTAL_ROUNDS) {
+    if (round < DIFFICULTY_SETTINGS[difficulty].rounds) {
       setRound(prev => prev + 1);
       startRound();
     } else {
-      const average = Math.round(roundScores.reduce((a, b) => a + b, 0) / TOTAL_ROUNDS);
+      const average = Math.round(roundScores.reduce((a, b) => a + b, 0) / DIFFICULTY_SETTINGS[difficulty].rounds);
       setFinalScore(average);
       setGameState('result');
       saveFinalResult(average);
@@ -170,7 +170,7 @@ const CircleMemoryTest: React.FC = () => {
         <div className="flex flex-col">
           <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Session</span>
           <span className="text-xl font-bold uppercase tracking-tight text-primary">
-            {gameState === 'idle' ? 'Prêt ?' : `Manche ${round} / ${TOTAL_ROUNDS}`}
+            {gameState === 'idle' ? 'Prêt ?' : `Manche ${round} / ${DIFFICULTY_SETTINGS[difficulty].rounds}`}
           </span>
         </div>
         
@@ -189,9 +189,17 @@ const CircleMemoryTest: React.FC = () => {
         {(gameState === 'guess' || gameState === 'round_result') && (
           <div className="flex flex-col items-end">
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Score Manche</span>
-            <span className="text-3xl font-bold text-amber-500 tabular-nums">
-              {gameState === 'round_result' ? `${currentRoundScore}%` : '--'}
-            </span>
+            <div className="flex items-center gap-2">
+              {streak > 1 && (
+                <div className="flex items-center gap-1 px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20 animate-in fade-in slide-in-from-right-4">
+                  <Zap className="h-3 w-3 text-amber-500 fill-amber-500" />
+                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-tighter">x{streak}</span>
+                </div>
+              )}
+              <span className="text-3xl font-bold text-amber-500 tabular-nums">
+                {gameState === 'round_result' ? `${currentRoundScore}%` : '--'}
+              </span>
+            </div>
           </div>
         )}
 
@@ -214,11 +222,30 @@ const CircleMemoryTest: React.FC = () => {
         {gameState === 'idle' ? (
           <div className="text-center animate-in fade-in zoom-in duration-700">
             <Brain className="h-20 w-20 text-primary/40 mx-auto mb-8" strokeWidth={1.5} />
-            <Button onClick={initGame} size="lg" className="rounded-full px-12 h-16 font-mono text-lg uppercase tracking-[0.2em] shadow-2xl hover:scale-105 transition-transform">
-              Démarrer le Test
-            </Button>
+            <div className="flex flex-col gap-8 items-center mb-8">
+              <div className="flex gap-2 p-1 rounded-full bg-secondary/30 border border-border/50">
+                {(['easy', 'normal', 'elite'] as Difficulty[]).map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => setDifficulty(d)}
+                    className={cn(
+                      "px-6 py-2 rounded-full font-mono text-[10px] uppercase tracking-widest transition-all",
+                      difficulty === d 
+                        ? "bg-primary text-primary-foreground shadow-lg" 
+                        : "text-muted-foreground hover:bg-secondary/50"
+                    )}
+                  >
+                    {d === 'easy' ? 'Facile' : d === 'normal' ? 'Normal' : 'Élite'}
+                  </button>
+                ))}
+              </div>
+              
+              <Button onClick={initGame} size="lg" className="rounded-full px-12 h-16 font-mono text-lg uppercase tracking-[0.2em] shadow-2xl hover:scale-105 transition-transform">
+                Démarrer le Test
+              </Button>
+            </div>
             <p className="mt-8 text-[10px] font-mono text-muted-foreground uppercase tracking-[0.3em] max-w-xs mx-auto leading-loose">
-              5 couleurs à mémoriser. Reproduisez-les le plus fidèlement possible.
+              {DIFFICULTY_SETTINGS[difficulty].rounds} couleurs à mémoriser ({DIFFICULTY_SETTINGS[difficulty].memorizeTime}s par couleur). Reproduisez-les fidèlement.
             </p>
           </div>
         ) : (
@@ -233,19 +260,19 @@ const CircleMemoryTest: React.FC = () => {
                 )}
                 style={{ 
                   backgroundColor: gameState === 'memorize' || gameState === 'round_result' 
-                    ? hslToString(targetColor) 
+                    ? oklchToString(targetColor) 
                     : gameState === 'guess' 
-                      ? hslToString(userGuessColor) 
+                      ? oklchToString(userGuessColor) 
                       : 'transparent'
                 }}
               />
               {gameState === 'round_result' && (
                 <div 
                   className="absolute -right-4 -bottom-4 w-24 h-24 md:w-32 md:h-32 rounded-3xl border-4 border-background shadow-2xl animate-in slide-in-from-right-4 duration-500"
-                  style={{ backgroundColor: hslToString(userGuessColor) }}
+                  style={{ backgroundColor: oklchToString(userGuessColor) }}
                 >
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-[inherit]">
-                    <span className="text-[10px] font-mono text-white uppercase tracking-tighter">Votre Essai</span>
+                    <span className="text-[10px] font-mono text-white uppercase tracking-tighter text-center px-2">Votre Essai</span>
                   </div>
                 </div>
               )}
@@ -279,9 +306,9 @@ const CircleMemoryTest: React.FC = () => {
                         onClick={() => setUserGuessColor(prev => ({ ...prev, h }))}
                         className={cn(
                           "w-8 h-8 rounded-full border-2 transition-all hover:scale-110 shadow-sm",
-                          userGuessColor.h === h ? "border-primary scale-110" : "border-transparent"
+                          Math.abs(userGuessColor.h - h) < 1 ? "border-primary scale-110" : "border-transparent"
                         )}
-                        style={{ backgroundColor: `hsl(${h}, 80%, 50%)` }}
+                        style={{ backgroundColor: `oklch(0.6 0.15 ${h})` }}
                       />
                     ))}
                   </div>
@@ -289,31 +316,34 @@ const CircleMemoryTest: React.FC = () => {
 
                 <div className="grid gap-6">
                   {[
-                    { label: 'Teinte', value: userGuessColor.h, max: 360, unit: '°', key: 'h', gradient: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)' },
-                    { label: 'Saturation', value: userGuessColor.s, max: 100, unit: '%', key: 's', gradient: `linear-gradient(to right, #808080, ${hslToString({ ...userGuessColor, s: 100 })})` },
-                    { label: 'Luminosité', value: userGuessColor.l, max: 100, unit: '%', key: 'l', gradient: `linear-gradient(to right, #000000, ${hslToString({ ...userGuessColor, l: 50 })}, #ffffff)` }
+                    { label: 'Teinte', value: userGuessColor.h, max: 360, step: 1, unit: '°', key: 'h', gradient: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)' },
+                    { label: 'Chroma', value: userGuessColor.c, max: 0.4, step: 0.01, unit: '', key: 'c', gradient: `linear-gradient(to right, oklch(0.6 0 ${userGuessColor.h}), oklch(0.6 0.4 ${userGuessColor.h}))` },
+                    { label: 'Luminosité', value: userGuessColor.l, max: 1, step: 0.01, unit: '', key: 'l', gradient: `linear-gradient(to right, #000000, oklch(0.5 ${userGuessColor.c} ${userGuessColor.h}), #ffffff)` }
                   ].map((s) => (
                     <div key={s.label} className="space-y-3">
                       <div className="flex justify-between items-center font-mono">
                         <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{s.label}</span>
-                        <span className="text-xs font-bold text-primary">{s.value}{s.unit}</span>
+                        <span className="text-xs font-bold text-primary">
+                          {s.key === 'h' ? Math.round(s.value) : s.value.toFixed(2)}
+                          {s.unit}
+                        </span>
                       </div>
                       <div className="flex items-center gap-3">
                         <Button 
                           variant="outline" size="icon" className="h-7 w-7 rounded-full"
-                          onClick={() => setUserGuessColor(prev => ({ ...prev, [s.key]: Math.max(0, (prev[s.key as 'h'|'s'|'l']) - 1) }))}
+                          onClick={() => setUserGuessColor(prev => ({ ...prev, [s.key]: Math.max(0, (prev[s.key as 'h'|'c'|'l']) - s.step) }))}
                         > - </Button>
                         <div className="relative flex-1">
                           <div className="absolute inset-0 h-1 top-1/2 -translate-y-1/2 rounded-full opacity-20" style={{ background: s.gradient }} />
                           <Slider 
-                            value={[s.value]} max={s.max} step={1} 
-                            onValueChange={([val]) => setUserGuessColor(prev => ({ ...prev, [s.key as 'h' | 's' | 'l']: val }))}
+                            value={[s.value]} max={s.max} step={s.step} 
+                            onValueChange={([val]) => setUserGuessColor(prev => ({ ...prev, [s.key as 'h' | 'c' | 'l']: val }))}
                             className="cursor-pointer relative z-10"
                           />
                         </div>
                         <Button 
                           variant="outline" size="icon" className="h-7 w-7 rounded-full"
-                          onClick={() => setUserGuessColor(prev => ({ ...prev, [s.key]: Math.min(s.max, (prev[s.key as 'h'|'s'|'l']) + 1) }))}
+                          onClick={() => setUserGuessColor(prev => ({ ...prev, [s.key]: Math.min(s.max, (prev[s.key as 'h'|'c'|'l']) + s.step) }))}
                         > + </Button>
                       </div>
                     </div>
@@ -339,7 +369,7 @@ const CircleMemoryTest: React.FC = () => {
                 </div>
                 
                 <Button onClick={handleNextRound} className="w-full rounded-full h-14 font-mono uppercase tracking-widest shadow-lg">
-                  {round < TOTAL_ROUNDS ? "Manche Suivante" : "Voir le Score Final"} <ArrowRight className="ml-2 h-4 w-4" />
+                  {round < DIFFICULTY_SETTINGS[difficulty].rounds ? "Manche Suivante" : "Voir le Score Final"} <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             )}
@@ -372,9 +402,9 @@ const CircleMemoryTest: React.FC = () => {
       </div>
 
       <div className="w-full flex justify-center items-center gap-12 text-[9px] font-mono text-muted-foreground/50 uppercase tracking-[0.3em]">
-        <span className="flex items-center gap-2">5 Manches</span>
-        <span className="flex items-center gap-2">Calcul de Moyenne</span>
-        <span className="flex items-center gap-2">Score / 100</span>
+        <span className="flex items-center gap-2">{DIFFICULTY_SETTINGS[difficulty].rounds} Manches</span>
+        <span className="flex items-center gap-2">OKLCH Perception</span>
+        <span className="flex items-center gap-2">Difficulté {difficulty}</span>
       </div>
     </div>
   );
