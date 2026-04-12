@@ -6,6 +6,12 @@ export interface HSLColor {
   l: number;
 }
 
+export interface OKLCHColor {
+  l: number; // Lightness (0-1)
+  c: number; // Chroma (0-0.4 approx)
+  h: number; // Hue (0-360)
+}
+
 /**
  * Generates a random HSL color.
  * @returns {HSLColor} An HSL color object.
@@ -15,6 +21,35 @@ export const generateRandomHSL = (): HSLColor => {
   const s = Math.floor(Math.random() * (80 - 70) + 70); // Saturation (70-80% for vibrant)
   const l = 50; // Lightness fixed at 50%
   return { h, s, l };
+};
+
+/**
+ * Calculates the perceptual distance between two OKLCH colors.
+ * This uses a weighted Euclidean distance in the LCH space.
+ * @param {OKLCHColor} c1 First color.
+ * @param {OKLCHColor} c2 Second color.
+ * @returns {number} The distance value.
+ */
+export const calculateOKLCHDistance = (c1: OKLCHColor, c2: OKLCHColor): number => {
+  let dH = Math.abs(c1.h - c2.h);
+  if (dH > 180) dH = 360 - dH;
+  const wL = 100;
+  const wC = 100;
+  const wH = 0.2;
+  return Math.sqrt(
+    Math.pow((c1.l - c2.l) * wL, 2) +
+    Math.pow((c1.c - c2.c) * wC, 2) +
+    Math.pow(dH * wH, 2)
+  );
+};
+
+/**
+ * Converts an OKLCH color object to a CSS OKLCH string.
+ * @param {OKLCHColor} color The OKLCH color object.
+ * @returns {string} The CSS OKLCH string.
+ */
+export const oklchToString = (color: OKLCHColor): string => {
+  return `oklch(${(color.l * 100).toFixed(1)}% ${color.c} ${color.h})`;
 };
 
 /**

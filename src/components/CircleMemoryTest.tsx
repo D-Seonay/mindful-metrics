@@ -2,23 +2,30 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
-import { hslToString, HSLColor } from '@/lib/colorSensitivityUtils';
-import { RotateCcw, Play, CheckCircle2, Trophy, ArrowRight, Brain } from 'lucide-react';
+import { oklchToString, OKLCHColor, calculateOKLCHDistance } from '@/lib/colorSensitivityUtils';
+import { RotateCcw, Play, CheckCircle2, Trophy, ArrowRight, Brain, Zap } from 'lucide-react';
 import { useSoundSystem } from '@/hooks/useSoundSystem';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { PerformanceHistory, CircleMemoryResult } from '@/types/history';
 import { useToast } from '@/hooks/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type GameState = 'idle' | 'memorize' | 'guess' | 'round_result' | 'result';
+type Difficulty = 'easy' | 'normal' | 'elite';
 
-const MEMORIZE_DURATION = 10;
-const TOTAL_ROUNDS = 5;
+const DIFFICULTY_SETTINGS = {
+  easy: { memorizeTime: 15, rounds: 3, sensitivity: 1.5 },
+  normal: { memorizeTime: 10, rounds: 5, sensitivity: 2.5 },
+  elite: { memorizeTime: 5, rounds: 10, sensitivity: 4.0 }
+};
 
 const CircleMemoryTest: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>('idle');
-  const [targetColor, setTargetColor] = useState<HSLColor>({ h: 0, s: 0, l: 0 });
-  const [userGuessColor, setUserGuessColor] = useState<HSLColor>({ h: 180, s: 50, l: 50 });
-  const [timeLeft, setTimeLeft] = useState(MEMORIZE_DURATION);
+  const [difficulty, setDifficulty] = useState<Difficulty>('normal');
+  const [streak, setStreak] = useState(0);
+  const [targetColor, setTargetColor] = useState<OKLCHColor>({ l: 0, c: 0, h: 0 });
+  const [userGuessColor, setUserGuessColor] = useState<OKLCHColor>({ l: 0.5, c: 0.15, h: 180 });
+  const [timeLeft, setTimeLeft] = useState(DIFFICULTY_SETTINGS.normal.memorizeTime);
   const [round, setRound] = useState(1);
   const [roundScores, setRoundScores] = useState<number[]>([]);
   const [currentRoundScore, setCurrentRoundScore] = useState(0);
@@ -28,6 +35,9 @@ const CircleMemoryTest: React.FC = () => {
   const { playSound } = useSoundSystem();
   const { toast } = useToast();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const hueSliderRef = useRef<HTMLButtonElement>(null);
+  const chromaSliderRef = useRef<HTMLButtonElement>(null);
+  const lightSliderRef = useRef<HTMLButtonElement>(null);
 
   const [history, setHistory] = useLocalStorage<PerformanceHistory>('performance-history', {
     reflex: [],
@@ -45,18 +55,18 @@ const CircleMemoryTest: React.FC = () => {
   }, []);
 
   const startRound = useCallback(() => {
-    const newColor: HSLColor = {
-      h: Math.floor(Math.random() * 360),
-      s: Math.floor(Math.random() * 40) + 40,
-      l: Math.floor(Math.random() * 30) + 35,
+    const newColor: OKLCHColor = {
+      l: 0.5 + Math.random() * 0.3,
+      c: 0.1 + Math.random() * 0.1,
+      h: Math.random() * 360,
     };
     
     setTargetColor(newColor);
     setGameState('memorize');
-    setTimeLeft(MEMORIZE_DURATION);
-    setUserGuessColor({ h: 180, s: 50, l: 50 });
+    setTimeLeft(DIFFICULTY_SETTINGS[difficulty].memorizeTime);
+    setUserGuessColor({ l: 0.6, c: 0.1, h: 180 });
     playSound('shoot');
-  }, [playSound]);
+  }, [playSound, difficulty]);
 
   const handleSkipMemorize = useCallback(() => {
     if (gameState !== 'memorize') return;
@@ -69,8 +79,33 @@ const CircleMemoryTest: React.FC = () => {
     setRound(1);
     setRoundScores([]);
     setFinalScore(null);
+    setStreak(0);
     startRound();
   }, [startRound]);
+
+  const handleValidateRound = useCallback(() => {
+    const distance = calculateOKLCHDistance(userGuessColor, targetColor);
+    const sensitivity = DIFFICULTY_SETTINGS[difficulty].sensitivity;
+    const score = Math.max(0, Math.round(100 - (distance * sensitivity)));
+    
+    setCurrentRoundScore(score);
+    setRoundScores(prev => [...prev, score]);
+    setGameState('round_result');
+    
+    if (score >= 95) {
+      setStreak(prev => prev + 1);
+      playSound('hit');
+    } else if (score >= 80) {
+      setStreak(0);
+      playSound('hit');
+    } else if (score < 40) {
+      setStreak(0);
+      playSound('error');
+    } else {
+      setStreak(0);
+      playSound('type');
+    }
+  }, [userGuessColor, targetColor, difficulty, playSound]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -78,11 +113,26 @@ const CircleMemoryTest: React.FC = () => {
         e.preventDefault();
         handleSkipMemorize();
       }
+      if (e.key === 'Enter' && gameState === 'guess') {
+        e.preventDefault();
+        handleValidateRound();
+      }
+      if (gameState === 'guess') {
+        if (e.key === '1') {
+          hueSliderRef.current?.focus();
+        }
+        if (e.key === '2') {
+          chromaSliderRef.current?.focus();
+        }
+        if (e.key === '3') {
+          lightSliderRef.current?.focus();
+        }
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, handleSkipMemorize]);
+  }, [gameState, handleSkipMemorize, handleValidateRound]);
 
   useEffect(() => {
     if (gameState === 'memorize' && timeLeft > 0) {
@@ -95,22 +145,6 @@ const CircleMemoryTest: React.FC = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [gameState, timeLeft, playSound]);
-
-  const calculateScore = () => {
-    const hDiff = Math.min(
-      Math.abs(userGuessColor.h - targetColor.h),
-      360 - Math.abs(userGuessColor.h - targetColor.h)
-    );
-    const sDiff = Math.abs(userGuessColor.s - targetColor.s);
-    const lDiff = Math.abs(userGuessColor.l - targetColor.l);
-
-    const normalizedH = hDiff / 1.8;
-    const normalizedS = sDiff;
-    const normalizedL = lDiff;
-
-    const avgDistance = (normalizedH + normalizedS + normalizedL) / 3;
-    return Math.max(0, Math.round(100 - avgDistance));
-  };
 
   const saveFinalResult = (average: number) => {
     const newResult: CircleMemoryResult = {
@@ -132,23 +166,12 @@ const CircleMemoryTest: React.FC = () => {
     }
   };
 
-  const handleValidateRound = () => {
-    const score = calculateScore();
-    setCurrentRoundScore(score);
-    setRoundScores(prev => [...prev, score]);
-    setGameState('round_result');
-    
-    if (score > 80) playSound('hit');
-    else if (score < 40) playSound('error');
-    else playSound('type');
-  };
-
   const handleNextRound = () => {
-    if (round < TOTAL_ROUNDS) {
+    if (round < DIFFICULTY_SETTINGS[difficulty].rounds) {
       setRound(prev => prev + 1);
       startRound();
     } else {
-      const average = Math.round(roundScores.reduce((a, b) => a + b, 0) / TOTAL_ROUNDS);
+      const average = Math.round(roundScores.reduce((a, b) => a + b, 0) / DIFFICULTY_SETTINGS[difficulty].rounds);
       setFinalScore(average);
       setGameState('result');
       saveFinalResult(average);
@@ -157,227 +180,401 @@ const CircleMemoryTest: React.FC = () => {
 
   if (!mounted) {
     return (
-      <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
-        <div className="w-full h-[600px] rounded-[3rem] border border-border/50 bg-secondary/10 animate-pulse" />
+      <div className="w-full max-w-4xl mx-auto flex flex-col items-center bg-zinc-950 text-zinc-100 font-mono">
+        <div className="w-full h-[600px] rounded-none border border-zinc-800 bg-zinc-900/50 animate-pulse" />
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
+    <div className="w-full max-w-4xl mx-auto flex flex-col items-center bg-zinc-950 text-zinc-100 font-mono min-h-screen py-12 px-4 selection:bg-zinc-100 selection:text-zinc-950">
       {/* HUD */}
-      <div className="w-full flex justify-between items-center mb-12 font-mono">
-        <div className="flex flex-col">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Session</span>
-          <span className="text-xl font-bold uppercase tracking-tight text-primary">
-            {gameState === 'idle' ? 'Prêt ?' : `Manche ${round} / ${TOTAL_ROUNDS}`}
+      <div className="w-full flex justify-between items-end mb-16 px-4">
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] text-zinc-500 uppercase tracking-[0.3em]">System.Session</span>
+          <span className="text-2xl font-black uppercase italic">
+            {gameState === 'idle' ? 'Ready_To_Sync' : `Phase.0${round}_OF_0${DIFFICULTY_SETTINGS[difficulty].rounds}`}
           </span>
         </div>
         
-        {gameState === 'memorize' && (
-          <div className="flex flex-col items-end">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Mémorisation</span>
-            <span className={cn(
-              "text-3xl font-bold tabular-nums",
-              timeLeft <= 3 ? "text-destructive animate-pulse" : "text-primary"
-            )}>
-              {timeLeft}s
-            </span>
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {gameState === 'memorize' && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex flex-col items-end gap-1"
+            >
+              <span className="text-[10px] text-zinc-500 uppercase tracking-[0.3em]">Mem.Buffer.TTL</span>
+              <span className={cn(
+                "text-4xl font-black tabular-nums italic",
+                timeLeft <= 3 ? "text-red-500 animate-pulse" : "text-zinc-100"
+              )}>
+                {timeLeft.toString().padStart(2, '0')}s
+              </span>
+            </motion.div>
+          )}
 
-        {(gameState === 'guess' || gameState === 'round_result') && (
-          <div className="flex flex-col items-end">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Score Manche</span>
-            <span className="text-3xl font-bold text-amber-500 tabular-nums">
-              {gameState === 'round_result' ? `${currentRoundScore}%` : '--'}
-            </span>
-          </div>
-        )}
+          {(gameState === 'guess' || gameState === 'round_result') && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex flex-col items-end gap-1"
+            >
+              <span className="text-[10px] text-zinc-500 uppercase tracking-[0.3em]">Match.Accuracy</span>
+              <div className="flex items-center gap-4">
+                {streak > 1 && (
+                  <motion.div 
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="flex items-center gap-2 px-3 py-1 bg-zinc-100 text-zinc-950 font-black italic text-[10px]"
+                  >
+                    <Zap className="h-3 w-3 fill-current" />
+                    HOT.x{streak}
+                  </motion.div>
+                )}
+                <span className="text-4xl font-black tabular-nums italic">
+                  {gameState === 'round_result' ? `${currentRoundScore}%` : '??%'}
+                </span>
+              </div>
+            </motion.div>
+          )}
 
-        {gameState === 'result' && (
-          <div className="flex flex-col items-end">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Moyenne Finale</span>
-            <span className="text-3xl font-bold text-primary tabular-nums">
-              {finalScore}/100
-            </span>
-          </div>
-        )}
+          {gameState === 'result' && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-end gap-1"
+            >
+              <span className="text-[10px] text-zinc-500 uppercase tracking-[0.3em]">Final.Average</span>
+              <span className="text-4xl font-black italic">
+                {finalScore}%
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className={cn(
-        "w-full rounded-[3rem] border border-border/50 bg-background/30 backdrop-blur-md p-8 md:p-16 mb-12 transition-all duration-700 min-h-[600px] flex flex-col items-center justify-center relative overflow-hidden",
-        gameState === 'memorize' && "border-primary/40 shadow-[0_0_80px_rgba(var(--primary),0.08)]",
-        gameState === 'guess' && "border-amber-500/30",
-      )}>
-        
-        {gameState === 'idle' ? (
-          <div className="text-center animate-in fade-in zoom-in duration-700">
-            <Brain className="h-20 w-20 text-primary/40 mx-auto mb-8" strokeWidth={1.5} />
-            <Button onClick={initGame} size="lg" className="rounded-full px-12 h-16 font-mono text-lg uppercase tracking-[0.2em] shadow-2xl hover:scale-105 transition-transform">
-              Démarrer le Test
-            </Button>
-            <p className="mt-8 text-[10px] font-mono text-muted-foreground uppercase tracking-[0.3em] max-w-xs mx-auto leading-loose">
-              5 couleurs à mémoriser. Reproduisez-les le plus fidèlement possible.
-            </p>
-          </div>
-        ) : (
-          <div className="w-full flex flex-col items-center">
+      <motion.div 
+        layout
+        className={cn(
+          "w-full border border-zinc-800 bg-zinc-900/20 p-8 md:p-16 mb-16 transition-colors duration-1000 min-h-[600px] flex flex-col items-center justify-center relative",
+          gameState === 'memorize' && "border-zinc-700 bg-zinc-900/40",
+          streak > 2 && "ring-1 ring-zinc-700 ring-offset-8 ring-offset-zinc-950 shadow-[0_0_100px_rgba(255,255,255,0.02)]"
+        )}
+      >
+        <AnimatePresence mode="wait">
+          {gameState === 'idle' ? (
+            <motion.div 
+              key="idle"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
+              transition={{ type: "spring", duration: 0.8 }}
+              className="text-center"
+            >
+              <div className="relative mb-12">
+                <Brain className="h-24 w-24 text-zinc-800 mx-auto" strokeWidth={1} />
+                <motion.div 
+                  animate={{ opacity: [0.2, 0.5, 0.2] }}
+                  transition={{ duration: 4, repeat: Infinity }}
+                  className="absolute inset-0 bg-zinc-100/5 blur-3xl rounded-full"
+                />
+              </div>
+
+              <div className="flex flex-col gap-12 items-center">
+                <div className="flex gap-4 p-2 bg-zinc-900 border border-zinc-800">
+                  {(['easy', 'normal', 'elite'] as Difficulty[]).map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => setDifficulty(d)}
+                      className={cn(
+                        "px-8 py-2 font-mono text-[10px] uppercase tracking-[0.2em] transition-all",
+                        difficulty === d 
+                          ? "bg-zinc-100 text-zinc-950 font-black" 
+                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+                      )}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+                
+                <Button 
+                  onClick={initGame} 
+                  className="rounded-none px-16 h-20 bg-zinc-100 text-zinc-950 hover:bg-zinc-200 font-black text-xl uppercase tracking-[0.3em] transition-all"
+                >
+                  START_LINK
+                </Button>
+              </div>
+
+              <div className="mt-16 space-y-4 max-w-sm mx-auto">
+                <p className="text-[10px] text-zinc-500 uppercase tracking-[0.3em] leading-relaxed">
+                  Buffer: {DIFFICULTY_SETTINGS[difficulty].rounds} Samples<br />
+                  TTL: {DIFFICULTY_SETTINGS[difficulty].memorizeTime}s / Sample<br />
+                  Metric: OKLCH.Distance
+                </p>
+                <div className="h-px w-8 bg-zinc-800 mx-auto" />
+                <p className="text-[9px] text-zinc-600 italic">
+                  Reproduce the target color from memory using the H-C-L parameters.
+                </p>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="active-game"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full flex flex-col items-center"
+            >
             
             {/* The Big Circle */}
             <div className="relative mb-16">
-              <div 
+              <motion.div 
+                layout
                 className={cn(
-                  "w-48 h-48 md:w-64 md:h-64 rounded-full border-8 transition-all duration-500 shadow-2xl",
-                  gameState === 'memorize' ? "scale-110 border-white/20" : "border-border/50"
+                  "w-48 h-48 md:w-64 md:h-64 border-8 transition-colors duration-500",
+                  gameState === 'memorize' ? "border-zinc-100/10" : "border-zinc-800"
                 )}
                 style={{ 
                   backgroundColor: gameState === 'memorize' || gameState === 'round_result' 
-                    ? hslToString(targetColor) 
+                    ? oklchToString(targetColor) 
                     : gameState === 'guess' 
-                      ? hslToString(userGuessColor) 
+                      ? oklchToString(userGuessColor) 
                       : 'transparent'
                 }}
-              />
-              {gameState === 'round_result' && (
-                <div 
-                  className="absolute -right-4 -bottom-4 w-24 h-24 md:w-32 md:h-32 rounded-3xl border-4 border-background shadow-2xl animate-in slide-in-from-right-4 duration-500"
-                  style={{ backgroundColor: hslToString(userGuessColor) }}
-                >
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-[inherit]">
-                    <span className="text-[10px] font-mono text-white uppercase tracking-tighter">Votre Essai</span>
-                  </div>
-                </div>
-              )}
+              >
+                {streak > 2 && (
+                  <motion.div 
+                    animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="absolute inset-0 border-4 border-zinc-100 opacity-20 blur-md"
+                  />
+                )}
+              </motion.div>
+
+              <AnimatePresence>
+                {gameState === 'round_result' && (
+                  <motion.div 
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: -20, opacity: 0 }}
+                    className="absolute -right-8 -bottom-8 w-24 h-24 md:w-32 md:h-32 border-4 border-zinc-950 bg-zinc-900 shadow-2xl overflow-hidden"
+                    style={{ backgroundColor: oklchToString(userGuessColor) }}
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/40">
+                      <span className="text-[10px] font-black text-zinc-100 uppercase italic tracking-tighter">USER_INPUT</span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Skip Memorization Button */}
-            {gameState === 'memorize' && (
-              <div className="flex flex-col items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <Button 
-                  variant="outline" 
-                  onClick={handleSkipMemorize}
-                  className="rounded-full px-8 h-12 font-mono text-[10px] uppercase tracking-[0.2em] border-primary/30 hover:bg-primary/10 transition-all duration-300 group"
+            <AnimatePresence>
+              {gameState === 'memorize' && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="flex flex-col items-center gap-6"
                 >
-                  <Brain className="mr-2 h-3.5 w-3.5 text-primary/60 group-hover:text-primary" />
-                  Passer la mémorisation
-                </Button>
-                <div className="flex items-center gap-2 text-[8px] font-mono text-muted-foreground uppercase tracking-widest opacity-50">
-                  Appuyez sur <span className="px-1.5 py-0.5 rounded border border-border bg-secondary/30 text-foreground font-bold">Espace</span>
-                </div>
-              </div>
-            )}
+                  <Button 
+                    variant="outline" 
+                    onClick={handleSkipMemorize}
+                    className="rounded-none px-12 h-14 font-mono text-[10px] uppercase tracking-[0.3em] border-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 transition-all group"
+                  >
+                    SKIP_BUFFER_MEM
+                  </Button>
+                  <div className="flex items-center gap-3 text-[9px] text-zinc-600 uppercase tracking-widest">
+                    <span>Press</span>
+                    <span className="px-2 py-1 border border-zinc-800 bg-zinc-900 text-zinc-400 font-bold">SPACE</span>
+                    <span>To_Skip</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Guess Phase Controls */}
-            {gameState === 'guess' && (
-              <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                <div className="space-y-3">
-                  <div className="flex justify-center gap-2">
-                    {[0, 45, 120, 180, 240, 300].map(h => (
-                      <button
-                        key={h}
-                        onClick={() => setUserGuessColor(prev => ({ ...prev, h }))}
-                        className={cn(
-                          "w-8 h-8 rounded-full border-2 transition-all hover:scale-110 shadow-sm",
-                          userGuessColor.h === h ? "border-primary scale-110" : "border-transparent"
-                        )}
-                        style={{ backgroundColor: `hsl(${h}, 80%, 50%)` }}
-                      />
+            <AnimatePresence>
+              {gameState === 'guess' && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -40 }}
+                  className="w-full max-w-md space-y-12"
+                >
+                  <div className="space-y-4">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-[0.3em]">Quick.Select.Hue</span>
+                    <div className="flex justify-between gap-2">
+                      {[0, 45, 120, 180, 240, 300].map(h => (
+                        <button
+                          key={h}
+                          onClick={() => setUserGuessColor(prev => ({ ...prev, h }))}
+                          className={cn(
+                            "w-8 h-8 border-2 transition-all hover:scale-110",
+                            Math.abs(userGuessColor.h - h) < 1 ? "border-zinc-100 scale-110" : "border-transparent"
+                          )}
+                          style={{ backgroundColor: `oklch(0.6 0.15 ${h})` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-10">
+                    {[
+                      { label: 'HUE_PARAM', value: userGuessColor.h, max: 360, step: 1, unit: '°', key: 'h', ref: hueSliderRef, gradient: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)', shortcut: '1' },
+                      { label: 'CHROMA_VAL', value: userGuessColor.c, max: 0.4, step: 0.01, unit: '', key: 'c', ref: chromaSliderRef, gradient: `linear-gradient(to right, oklch(0.6 0 ${userGuessColor.h}), oklch(0.6 0.4 ${userGuessColor.h}))`, shortcut: '2' },
+                      { label: 'LIGHT_SENSE', value: userGuessColor.l, max: 1, step: 0.01, unit: '', key: 'l', ref: lightSliderRef, gradient: `linear-gradient(to right, #000000, oklch(0.5 ${userGuessColor.c} ${userGuessColor.h}), #ffffff)`, shortcut: '3' }
+                    ].map((s) => (
+                      <div key={s.label} className="space-y-4 group">
+                        <div className="flex justify-between items-end">
+                          <div className="flex items-center gap-3">
+                            <span className="px-1.5 py-0.5 border border-zinc-800 bg-zinc-900 text-[8px] text-zinc-500 font-bold group-focus-within:border-zinc-500 group-focus-within:text-zinc-100 transition-colors">{s.shortcut}</span>
+                            <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 group-focus-within:text-zinc-100 transition-colors">{s.label}</span>
+                          </div>
+                          <span className="text-sm font-black italic text-zinc-100">
+                            {s.key === 'h' ? Math.round(s.value).toString().padStart(3, '0') : s.value.toFixed(2)}
+                            {s.unit}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <div className="relative flex-1 h-12 flex items-center">
+                            <div className="absolute inset-0 h-[2px] top-1/2 -translate-y-1/2 bg-zinc-800" />
+                            <div className="absolute inset-0 h-[2px] top-1/2 -translate-y-1/2 opacity-30" style={{ background: s.gradient }} />
+                            <Slider 
+                              ref={s.ref}
+                              value={[s.value]} max={s.max} step={s.step} 
+                              onValueChange={([val]) => setUserGuessColor(prev => ({ ...prev, [s.key as 'h' | 'c' | 'l']: val }))}
+                              className="cursor-none relative z-10 focus-visible:ring-0"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
-                </div>
 
-                <div className="grid gap-6">
-                  {[
-                    { label: 'Teinte', value: userGuessColor.h, max: 360, unit: '°', key: 'h', gradient: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)' },
-                    { label: 'Saturation', value: userGuessColor.s, max: 100, unit: '%', key: 's', gradient: `linear-gradient(to right, #808080, ${hslToString({ ...userGuessColor, s: 100 })})` },
-                    { label: 'Luminosité', value: userGuessColor.l, max: 100, unit: '%', key: 'l', gradient: `linear-gradient(to right, #000000, ${hslToString({ ...userGuessColor, l: 50 })}, #ffffff)` }
-                  ].map((s) => (
-                    <div key={s.label} className="space-y-3">
-                      <div className="flex justify-between items-center font-mono">
-                        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{s.label}</span>
-                        <span className="text-xs font-bold text-primary">{s.value}{s.unit}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Button 
-                          variant="outline" size="icon" className="h-7 w-7 rounded-full"
-                          onClick={() => setUserGuessColor(prev => ({ ...prev, [s.key]: Math.max(0, (prev[s.key as 'h'|'s'|'l']) - 1) }))}
-                        > - </Button>
-                        <div className="relative flex-1">
-                          <div className="absolute inset-0 h-1 top-1/2 -translate-y-1/2 rounded-full opacity-20" style={{ background: s.gradient }} />
-                          <Slider 
-                            value={[s.value]} max={s.max} step={1} 
-                            onValueChange={([val]) => setUserGuessColor(prev => ({ ...prev, [s.key as 'h' | 's' | 'l']: val }))}
-                            className="cursor-pointer relative z-10"
-                          />
-                        </div>
-                        <Button 
-                          variant="outline" size="icon" className="h-7 w-7 rounded-full"
-                          onClick={() => setUserGuessColor(prev => ({ ...prev, [s.key]: Math.min(s.max, (prev[s.key as 'h'|'s'|'l']) + 1) }))}
-                        > + </Button>
-                      </div>
+                  <div className="pt-8">
+                    <Button 
+                      onClick={handleValidateRound} 
+                      className="w-full rounded-none h-20 bg-zinc-100 text-zinc-950 hover:bg-zinc-200 font-black uppercase tracking-[0.3em] transition-all group relative overflow-hidden"
+                    >
+                      <span className="relative z-10 flex items-center justify-center gap-3">
+                        COMMIT_REPRODUCTION <ArrowRight className="h-4 w-4" />
+                      </span>
+                      <motion.div 
+                        initial={{ x: '-100%' }}
+                        whileHover={{ x: '100%' }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute inset-0 bg-white/20 skew-x-12"
+                      />
+                    </Button>
+                    <div className="mt-4 flex justify-center items-center gap-3 text-[9px] text-zinc-600 uppercase tracking-widest">
+                      <span>Press</span>
+                      <span className="px-2 py-1 border border-zinc-800 bg-zinc-900 text-zinc-400 font-bold">ENTER</span>
+                      <span>To_Confirm</span>
                     </div>
-                  ))}
-                </div>
-
-                <Button 
-                  onClick={handleValidateRound} 
-                  className="w-full rounded-full h-14 font-mono uppercase tracking-[0.2em] shadow-xl bg-primary text-primary-foreground"
-                >
-                  Valider la Manche
-                </Button>
-              </div>
-            )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Round Result Phase */}
-            {gameState === 'round_result' && (
-              <div className="text-center animate-in zoom-in duration-500 w-full max-w-sm">
-                <div className="bg-secondary/20 rounded-3xl p-6 mb-8 border border-border/50">
-                  <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-2">Résultat Manche {round}</p>
-                  <p className="text-4xl font-black font-mono text-primary mb-1">{currentRoundScore}%</p>
-                  <p className="text-[10px] font-mono text-muted-foreground uppercase">Précision chromatique</p>
-                </div>
-                
-                <Button onClick={handleNextRound} className="w-full rounded-full h-14 font-mono uppercase tracking-widest shadow-lg">
-                  {round < TOTAL_ROUNDS ? "Manche Suivante" : "Voir le Score Final"} <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            )}
+            <AnimatePresence>
+              {gameState === 'round_result' && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.1 }}
+                  className="text-center w-full max-w-sm"
+                >
+                  <div className="bg-zinc-900 border border-zinc-800 p-8 mb-12 relative overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${currentRoundScore}%` }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      className="absolute bottom-0 left-0 h-[2px] bg-zinc-100"
+                    />
+                    <p className="text-[10px] text-zinc-500 uppercase tracking-[0.3em] mb-4">Round.Accuracy.Report</p>
+                    <p className="text-6xl font-black italic text-zinc-100 mb-2">{currentRoundScore}%</p>
+                    <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Chromatic_Precision_Index</p>
+                  </div>
+                  
+                  <Button 
+                    onClick={handleNextRound} 
+                    className="w-full rounded-none h-20 bg-zinc-100 text-zinc-950 hover:bg-zinc-200 font-black uppercase tracking-[0.2em] transition-all group"
+                  >
+                    {round < DIFFICULTY_SETTINGS[difficulty].rounds ? "NEXT_PHASE" : "ACCESS_FINAL_DATA"} <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Final Result Phase */}
-            {gameState === 'result' && (
-              <div className="text-center animate-in zoom-in duration-700 w-full max-w-md">
-                <Trophy className={cn("h-16 w-16 mx-auto mb-6", finalScore! > 85 ? "text-yellow-500" : "text-muted-foreground/40")} />
-                <h2 className="text-3xl font-black font-mono uppercase mb-2">Score Final</h2>
-                <p className="text-6xl font-black font-mono text-primary mb-8">{finalScore}%</p>
-                
-                <div className="grid grid-cols-5 gap-2 mb-10">
-                  {roundScores.map((s, i) => (
-                    <div key={i} className="flex flex-col gap-1">
-                      <div className="h-12 w-full bg-secondary/30 rounded-lg relative overflow-hidden border border-border/50">
-                        <div className="absolute bottom-0 left-0 right-0 bg-primary/40 transition-all duration-1000" style={{ height: `${s}%` }} />
-                      </div>
-                      <span className="text-[8px] font-mono text-muted-foreground uppercase">M{i+1}</span>
-                    </div>
-                  ))}
-                </div>
+            <AnimatePresence>
+              {gameState === 'result' && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center w-full max-w-md"
+                >
+                  <Trophy className={cn("h-20 w-20 mx-auto mb-8", (finalScore || 0) > 85 ? "text-zinc-100" : "text-zinc-800")} strokeWidth={1} />
+                  
+                  <div className="space-y-2 mb-12">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-[0.4em]">Final.Performance.Report</span>
+                    <h2 className="text-7xl font-black italic text-zinc-100 uppercase tracking-tighter">
+                      {finalScore}%
+                    </h2>
+                  </div>
+                  
+                  <div className="grid grid-cols-5 gap-4 mb-16">
+                    {roundScores.map((s, i) => (
+                      <motion.div 
+                        key={i}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
+                        className="flex flex-col gap-3"
+                      >
+                        <div className="h-24 w-full bg-zinc-900 border border-zinc-800 relative overflow-hidden">
+                          <motion.div 
+                            initial={{ height: 0 }}
+                            animate={{ height: `${s}%` }}
+                            transition={{ delay: 0.5 + i * 0.1, duration: 1, ease: "easeOut" }}
+                            className="absolute bottom-0 left-0 right-0 bg-zinc-100/20"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-[10px] font-black italic text-zinc-500">{s}</span>
+                          </div>
+                        </div>
+                        <span className="text-[8px] font-mono text-zinc-600 uppercase tracking-widest">PH.{i+1}</span>
+                      </motion.div>
+                    ))}
+                  </div>
 
-                <Button onClick={initGame} variant="outline" className="rounded-full px-12 h-14 font-mono uppercase tracking-widest hover:bg-secondary">
-                  <RotateCcw className="h-4 w-4 mr-2" /> Recommencer
-                </Button>
-              </div>
-            )}
-          </div>
+                  <Button 
+                    onClick={initGame} 
+                    className="w-full rounded-none h-20 bg-zinc-100 text-zinc-950 hover:bg-zinc-200 font-black uppercase tracking-[0.3em] transition-all group"
+                  >
+                    <RotateCcw className="mr-3 h-5 w-5 group-hover:rotate-180 transition-transform duration-500" /> REBOOT_SYSTEM
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
+    </motion.div>
 
-      <div className="w-full flex justify-center items-center gap-12 text-[9px] font-mono text-muted-foreground/50 uppercase tracking-[0.3em]">
-        <span className="flex items-center gap-2">5 Manches</span>
-        <span className="flex items-center gap-2">Calcul de Moyenne</span>
-        <span className="flex items-center gap-2">Score / 100</span>
-      </div>
+    <div className="w-full flex justify-center items-center gap-12 text-[9px] font-mono text-muted-foreground/50 uppercase tracking-[0.3em]">
+      <span className="flex items-center gap-2">{DIFFICULTY_SETTINGS[difficulty].rounds} Manches</span>
+      <span className="flex items-center gap-2">OKLCH Perception</span>
+      <span className="flex items-center gap-2">Difficulté {difficulty}</span>
     </div>
-  );
+  </div>
+);
 };
 
 export default CircleMemoryTest;
