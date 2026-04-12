@@ -156,11 +156,11 @@ const ColorMemory: React.FC = () => {
         
         {/* Compact Settings Bar */}
         <div className={cn(
-          "flex flex-wrap items-center justify-between gap-4 mb-8 md:mb-12 p-3 rounded-xl bg-secondary/20 border border-border/50 transition-all duration-300",
+          "flex flex-wrap items-center justify-between gap-4 mb-8 md:mb-12 p-3 rounded-xl bg-secondary border border-border transition-all duration-300",
           (gameState === "SHOWING" || gameState === "PLAYING") ? "opacity-0 pointer-events-none scale-95" : "opacity-100 scale-100"
         )}>
           <div className="flex items-center gap-4 flex-1 max-w-xs">
-            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest whitespace-nowrap">Base Speed</span>
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest whitespace-nowrap">Base Speed</span>
             <Slider 
               value={[speed]} 
               min={300} 
@@ -169,18 +169,18 @@ const ColorMemory: React.FC = () => {
               onValueChange={(val) => setSpeed(val[0])}
               className="flex-1"
             />
-            <span className="text-[10px] font-mono text-muted-foreground w-12">{speed}ms</span>
+            <span className="text-[10px] font-medium text-muted-foreground w-12">{speed}ms</span>
           </div>
           
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setSpeed(INITIAL_SPEED)} className="h-8 text-[10px] font-mono uppercase tracking-wider">
+            <Button variant="ghost" size="sm" onClick={() => setSpeed(INITIAL_SPEED)} className="h-8 text-[10px] font-medium uppercase tracking-wider">
               RESET SPEED
             </Button>
           </div>
         </div>
 
         {/* HUD Stats */}
-        <div className="flex justify-start gap-8 md:gap-12 mb-8 font-mono">
+        <div className="flex justify-start gap-8 md:gap-12 mb-8">
           <div className="flex flex-col">
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Level</span>
             <span className="text-xl md:text-2xl font-bold tabular-nums text-primary">
@@ -204,7 +204,7 @@ const ColorMemory: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={startGame}
-              className="h-8 px-2 md:px-3 text-[10px] md:text-xs font-mono text-muted-foreground hover:text-foreground"
+              className="h-8 px-2 md:px-3 text-[10px] md:text-xs text-muted-foreground hover:text-foreground"
             >
               <RotateCcw className="h-3 w-3 mr-1 md:mr-2" />
               RESTART
@@ -214,14 +214,14 @@ const ColorMemory: React.FC = () => {
 
         <div className="flex-1 relative min-h-0">
           {gameState === "IDLE" && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-zinc-950/20 backdrop-blur-sm rounded-2xl animate-in fade-in duration-500">
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm rounded-2xl animate-in fade-in duration-500">
               <div className="max-w-md text-center px-6">
                 <Brain className="h-16 w-16 text-primary mx-auto mb-6 opacity-50" />
-                <h2 className="text-2xl font-bold font-mono tracking-tight uppercase mb-4">Color Memory</h2>
-                <p className="text-sm text-muted-foreground font-mono uppercase tracking-widest leading-relaxed mb-8">
+                <h2 className="text-2xl font-bold tracking-tight uppercase mb-4">Color Memory</h2>
+                <p className="text-sm text-muted-foreground uppercase tracking-widest leading-relaxed mb-8">
                   Watch the sequence of colors and repeat it. The sequence grows longer each level.
                 </p>
-                <Button onClick={startGame} size="lg" className="rounded-full px-12 h-16 font-mono text-lg uppercase tracking-[0.2em] shadow-2xl">
+                <Button onClick={startGame} size="lg" className="rounded-full px-12 h-16 text-lg uppercase tracking-[0.2em] shadow-2xl">
                   <Play className="mr-2 h-5 w-5" /> START TEST
                 </Button>
               </div>
@@ -234,15 +234,15 @@ const ColorMemory: React.FC = () => {
                 <Trophy className="h-16 w-16 text-primary mx-auto mb-6" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mb-12">
                   <div className="space-y-1">
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Level Reached</div>
-                    <div className="text-5xl md:text-7xl font-bold text-primary font-mono tabular-nums">{score}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Level Reached</div>
+                    <div className="text-5xl md:text-7xl font-bold text-primary tabular-nums">{score}</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Personal Best</div>
-                    <div className="text-3xl md:text-5xl font-bold font-mono tabular-nums text-muted-foreground">{highScore}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Personal Best</div>
+                    <div className="text-3xl md:text-5xl font-bold tabular-nums text-muted-foreground">{highScore}</div>
                   </div>
                 </div>
-                <Button onClick={startGame} size="lg" className="rounded-full px-8 font-mono uppercase tracking-widest">
+                <Button onClick={startGame} size="lg" className="rounded-full px-8 uppercase tracking-widest">
                   TRY AGAIN
                 </Button>
               </div>
@@ -251,18 +251,18 @@ const ColorMemory: React.FC = () => {
 
           <div className={cn(
             "w-full h-full rounded-2xl border transition-all duration-500 flex flex-col items-center justify-center p-4 md:p-8",
-            gameState === "SHOWING" || gameState === "PLAYING" ? "bg-background border-primary/20 shadow-inner" : "bg-secondary/10 border-border/50"
+            gameState === "SHOWING" || gameState === "PLAYING" ? "bg-background border-primary/20 shadow-inner" : "bg-secondary border-border"
           )}>
             
             {/* Status Message */}
             <div className="mb-8 h-8 text-center">
               {gameState === "SHOWING" && (
-                <div className="flex items-center gap-2 text-primary font-mono text-xs uppercase tracking-[0.3em] animate-pulse">
+                <div className="flex items-center gap-2 text-primary text-xs uppercase tracking-[0.3em] animate-pulse">
                   <Sparkles className="h-4 w-4" /> WATCHING SEQUENCE...
                 </div>
               )}
               {gameState === "PLAYING" && (
-                <div className="text-muted-foreground font-mono text-xs uppercase tracking-[0.3em]">
+                <div className="text-muted-foreground text-xs uppercase tracking-[0.3em]">
                    YOUR TURN
                 </div>
               )}

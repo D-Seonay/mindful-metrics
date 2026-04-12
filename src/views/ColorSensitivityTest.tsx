@@ -231,10 +231,10 @@ const ColorSensitivityTest: React.FC = () => {
       <div className="container max-w-5xl mx-auto px-4 py-4 md:py-12 flex flex-col h-[calc(100vh-4rem)]">
         {/* Compact Settings Bar */}
         <div className={cn(
-          "flex items-center justify-center gap-2 md:gap-4 mb-6 md:mb-12 p-2 rounded-xl bg-secondary/20 border border-border/50 transition-opacity duration-300",
+          "flex items-center justify-center gap-2 md:gap-4 mb-6 md:mb-12 p-2 rounded-xl bg-secondary border border-border transition-opacity duration-300",
           isGameStarted ? "opacity-0 pointer-events-none" : "opacity-100"
         )}>
-          <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest px-2 border-r border-border/50">Difficulty</span>
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest px-2 border-r border-border">Difficulty</span>
           <div className="flex gap-1">
             {(["facile", "normal", "difficile"] as Difficulty[]).map(opt => (
               <Button 
@@ -242,7 +242,7 @@ const ColorSensitivityTest: React.FC = () => {
                 variant={difficulty === opt ? 'secondary' : 'ghost'} 
                 size="sm"
                 onClick={() => setDifficulty(opt)}
-                className="h-8 px-2 md:px-3 text-[10px] md:text-xs font-mono uppercase"
+                className="h-8 px-2 md:px-3 text-[10px] md:text-xs uppercase"
               >
                 {opt}
               </Button>
@@ -251,7 +251,7 @@ const ColorSensitivityTest: React.FC = () => {
         </div>
 
         {/* HUD Stats */}
-        <div className="flex justify-start gap-4 md:gap-12 mb-4 md:mb-8 font-mono">
+        <div className="flex justify-start gap-4 md:gap-12 mb-4 md:mb-8">
           <div className="flex flex-col">
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Level</span>
             <span className="text-xl md:text-2xl font-bold tabular-nums">
@@ -280,7 +280,7 @@ const ColorSensitivityTest: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={resetGame}
-              className="h-8 px-2 md:px-3 text-[10px] md:text-xs font-mono text-muted-foreground hover:text-foreground"
+              className="h-8 px-2 md:px-3 text-[10px] md:text-xs text-muted-foreground hover:text-foreground"
             >
               <RotateCcw className="h-3 w-3 mr-1 md:mr-2" />
               RESTART
@@ -290,11 +290,11 @@ const ColorSensitivityTest: React.FC = () => {
 
         <div className="flex-1 relative min-h-0">
           {!isGameStarted && !isGameOver && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-zinc-950/10 rounded-2xl">
-              <Button onClick={startGame} size="lg" className="rounded-full px-8 md:px-12 h-12 md:h-16 font-mono text-base md:text-lg uppercase tracking-[0.2em] shadow-2xl">
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/50 rounded-2xl">
+              <Button onClick={startGame} size="lg" className="rounded-full px-8 md:px-12 h-12 md:h-16 text-base md:text-lg uppercase tracking-[0.2em] shadow-2xl">
                 START TEST
               </Button>
-              <p className="mt-4 md:mt-6 text-[10px] md:text-xs font-mono text-muted-foreground uppercase tracking-widest text-center">Find the slightly different shade</p>
+              <p className="mt-4 md:mt-6 text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest text-center">Find the slightly different shade</p>
             </div>
           )}
 
@@ -303,19 +303,19 @@ const ColorSensitivityTest: React.FC = () => {
               <div className="text-center w-full max-w-3xl p-4 md:p-12">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 items-center mb-8 md:mb-12">
                   <div className="space-y-1">
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Level Reached</div>
-                    <div className="text-4xl md:text-6xl font-bold text-primary font-mono">{gameResult}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Level Reached</div>
+                    <div className="text-4xl md:text-6xl font-bold text-primary">{gameResult}</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Difficulty</div>
-                    <div className="text-2xl md:text-4xl font-bold font-mono uppercase">{difficulty}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Difficulty</div>
+                    <div className="text-2xl md:text-4xl font-bold uppercase">{difficulty}</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Personal Best</div>
-                    <div className="text-2xl md:text-4xl font-bold font-mono tabular-nums">{bestScore}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Personal Best</div>
+                    <div className="text-2xl md:text-4xl font-bold tabular-nums">{bestScore}</div>
                   </div>
                 </div>
-                <Button onClick={startGame} size="lg" className="rounded-full px-8 font-mono uppercase tracking-widest">
+                <Button onClick={startGame} size="lg" className="rounded-full px-8 uppercase tracking-widest">
                   TRY AGAIN
                 </Button>
               </div>
@@ -324,7 +324,7 @@ const ColorSensitivityTest: React.FC = () => {
 
           <div className={cn(
             "w-full h-full rounded-2xl border transition-all duration-500 flex items-center justify-center p-4 md:p-8",
-            isGameStarted ? "bg-background border-primary/20 shadow-inner" : "bg-secondary/10 border-border/50"
+            isGameStarted ? "bg-background border-primary/20 shadow-inner" : "bg-secondary border-border"
           )}>
             {renderGrid()}
           </div>
