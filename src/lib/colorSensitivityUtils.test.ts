@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateOKLCHDistance, oklchToString, OKLCHColor } from './colorSensitivityUtils';
+import { calculateOKLCHDistance, oklchToString, OKLCHColor, generateOKLCHPalette } from './colorSensitivityUtils';
 
 describe('colorSensitivityUtils OKLCH', () => {
   describe('calculateOKLCHDistance', () => {
@@ -54,6 +54,39 @@ describe('colorSensitivityUtils OKLCH', () => {
     it('should format OKLCH color as a CSS string', () => {
       const color: OKLCHColor = { l: 0.7, c: 0.2, h: 150 };
       expect(oklchToString(color)).toBe('oklch(70.0% 0.2 150)');
+    });
+  });
+
+  describe('generateOKLCHPalette', () => {
+    it('should generate the requested number of colors', () => {
+      const palette = generateOKLCHPalette(5);
+      expect(palette).toHaveLength(5);
+    });
+
+    it('should generate distinct colors', () => {
+      const count = 6;
+      const palette = generateOKLCHPalette(count);
+      const hues = palette.map(c => c.h);
+      const uniqueHues = new Set(hues);
+      expect(uniqueHues.size).toBe(count);
+    });
+
+    it('should use fixed lightness and chroma', () => {
+      const palette = generateOKLCHPalette(3);
+      palette.forEach(color => {
+        expect(color.l).toBe(0.6);
+        expect(color.c).toBe(0.15);
+      });
+    });
+
+    it('should distribute hues evenly', () => {
+      const count = 4;
+      const palette = generateOKLCHPalette(count);
+      // hues should be separated by 360/4 = 90 degrees
+      const h0 = palette[0].h;
+      expect(palette[1].h).toBe((h0 + 90) % 360);
+      expect(palette[2].h).toBe((h0 + 180) % 360);
+      expect(palette[3].h).toBe((h0 + 270) % 360);
     });
   });
 });

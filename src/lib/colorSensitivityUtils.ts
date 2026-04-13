@@ -90,3 +90,24 @@ export const adjustLightness = (color: HSLColor, delta: number): HSLColor => {
 export const hslToString = (color: HSLColor): string => {
   return `hsl(${color.h}, ${color.s}%, ${color.l}%)`;
 };
+
+/**
+ * Generates a palette of distinct OKLCH colors distributed evenly across the hue circle.
+ * @param {number} count The number of colors to generate.
+ * @returns {OKLCHColor[]} An array of OKLCH color objects.
+ */
+export const generateOKLCHPalette = (count: number): OKLCHColor[] => {
+  const startHue = Math.floor(Math.random() * 360);
+  const palette: OKLCHColor[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const h = (startHue + (i * (360 / count))) % 360;
+    palette.push({
+      l: 0.6,
+      c: 0.15,
+      h
+    });
+  }
+
+  return palette;
+};
