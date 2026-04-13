@@ -1,30 +1,20 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSoundSystem } from "@/hooks/useSoundSystem";
 import { cn } from "@/lib/utils";
 import { PerformanceHistory, ColorMemoryResult } from "@/types/history";
-import { RotateCcw, Play, Brain, Sparkles, Trophy } from "lucide-react";
+import { RotateCcw, Play, Brain, Sparkles, Trophy, Zap } from "lucide-react";
+import { generateOKLCHPalette, oklchToString, OKLCHColor } from "@/lib/colorSensitivityUtils";
 
 // Types
 type GameState = "IDLE" | "SHOWING" | "PLAYING" | "FINISHED";
 
-interface ColorItem {
-  id: number;
-  color: string;
-  name: string;
-}
-
-const COLORS: ColorItem[] = [
-  { id: 0, color: "hsl(0, 70%, 50%)", name: "Red" },
-  { id: 1, color: "hsl(120, 70%, 40%)", name: "Green" },
-  { id: 2, color: "hsl(210, 70%, 50%)", name: "Blue" },
-  { id: 3, color: "hsl(45, 90%, 50%)", name: "Yellow" },
-];
-
+// Constants
 const INITIAL_SPEED = 800;
 const MIN_SPEED = 200;
 
@@ -33,11 +23,17 @@ const ColorMemory: React.FC = () => {
   const [sequence, setSequence] = useState<number[]>([]);
   const [userSequence, setUserSequence] = useState<number[]>([]);
   const [activeColor, setActiveColor] = useState<number | null>(null);
+  const [palette, setPalette] = useState<OKLCHColor[]>([]);
   const [speed, setSpeed] = useState(INITIAL_SPEED);
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [showKeyHints, setShowKeyHints] = useState(true);
   const { toast } = useToast();
   const { playSound } = useSoundSystem();
+
+  const gridSize = score >= 10 ? 3 : 2;
+  const numColors = gridSize * gridSize;
 
   const [history, setHistory] = useLocalStorage<PerformanceHistory>("performance-history", {
     reflex: [],
