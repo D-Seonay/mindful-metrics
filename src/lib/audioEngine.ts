@@ -60,6 +60,25 @@ class AudioEngine {
     source.start(0);
   }
 
+  public playNote(frequency: number) {
+    if (!this.context || !this.masterGain) return;
+
+    const oscillator = this.context.createOscillator();
+    const gainNode = this.context.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(frequency, this.context.currentTime);
+
+    gainNode.gain.setValueAtTime(0.5, this.context.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, this.context.currentTime + 0.3);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(this.masterGain);
+
+    oscillator.start();
+    oscillator.stop(this.context.currentTime + 0.3);
+  }
+
   // Procedurally generate sounds to avoid external asset dependencies
   private generateSounds() {
     if (!this.context) return;

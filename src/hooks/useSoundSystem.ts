@@ -32,6 +32,18 @@ export function useSoundSystem() {
 
   return {
     playSound,
+    playNote,
+    volume,
+    setVolume: handleVolumeChange,
+    isMuted,
+    toggleMute,
+  };
+}
+
+  };
+
+  return {
+    playSound,
     volume,
     setVolume: handleVolumeChange,
     isMuted,
