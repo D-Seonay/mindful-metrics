@@ -149,8 +149,11 @@ export function Layout({ children }: LayoutProps) {
                             : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                         )}
                       >
-                        <profileItem.icon className="h-4 w-4" />
-                        <span>{profileItem.label}</span>
+                        <Avatar className="h-6 w-6 border border-border/50">
+                          <AvatarImage src="https://github.com/shadcn.png" alt="Profile" />
+                          <AvatarFallback>CN</AvatarFallback>
+                        </Avatar>
+                        <span>Mon Profil</span>
                       </Link>
                     </div>
                   </div>
