@@ -1,0 +1,183 @@
+{
+  "version": 3,
+  "middleware": {},
+  "functions": {
+    "/apple-icon/route": {
+      "files": [
+        "server/middleware-build-manifest.js",
+        "server/middleware-react-loadable-manifest.js",
+        "server/next-font-manifest.js",
+        "server/interception-route-rewrite-manifest.js",
+        "required-server-files.js",
+        "server/edge-runtime-webpack.js",
+        "server/edge-chunks/774.js",
+        "server/app/apple-icon/route.js"
+      ],
+      "entrypoint": "server/app/apple-icon/route.js",
+      "name": "app/apple-icon/route",
+      "page": "/apple-icon/route",
+      "matchers": [
+        {
+          "regexp": "^/apple\\-icon$",
+          "originalSource": "/apple-icon"
+        }
+      ],
+      "wasm": [
+        {
+          "name": "wasm_a5d4d0ae9bf0a18b666f06b1864089d3fe4057cc",
+          "filePath": "server/edge-chunks/wasm_a5d4d0ae9bf0a18b666f06b1864089d3fe4057cc.wasm"
+        },
+        {
+          "name": "wasm_77d9faebf7af9e421806970ce10a58e9d83116d7",
+          "filePath": "server/edge-chunks/wasm_77d9faebf7af9e421806970ce10a58e9d83116d7.wasm"
+        }
+      ],
+      "assets": [
+        {
+          "name": "Geist-Regular.4548d4b15b6b765e.ttf",
+          "filePath": "server/edge-chunks/asset_Geist-Regular.4548d4b15b6b765e.ttf"
+        }
+      ],
+      "env": {
+        "__NEXT_BUILD_ID": "CSCQCdhXdv6K-5g3bj7rS",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "pASm2gnjvFLKnB8h/53Mm00B8ixCBVmBFiZfysml2O8=",
+        "__NEXT_PREVIEW_MODE_ID": "f55d04b8f49760380fbc0b37815071e3",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "7680ead784b0878e2243686973f055e4f1e526cd984b0076432e48481af06271",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "f3ca527897185cc82265c76f240e893ea33857831ff2faf00c9f5899a1f93a5d"
+      }
+    },
+    "/icon/route": {
+      "files": [
+        "server/middleware-build-manifest.js",
+        "server/middleware-react-loadable-manifest.js",
+        "server/next-font-manifest.js",
+        "server/interception-route-rewrite-manifest.js",
+        "required-server-files.js",
+        "server/edge-runtime-webpack.js",
+        "server/edge-chunks/774.js",
+        "server/app/icon/route.js"
+      ],
+      "entrypoint": "server/app/icon/route.js",
+      "name": "app/icon/route",
+      "page": "/icon/route",
+      "matchers": [
+        {
+          "regexp": "^/icon$",
+          "originalSource": "/icon"
+        }
+      ],
+      "wasm": [
+        {
+          "name": "wasm_a5d4d0ae9bf0a18b666f06b1864089d3fe4057cc",
+          "filePath": "server/edge-chunks/wasm_a5d4d0ae9bf0a18b666f06b1864089d3fe4057cc.wasm"
+        },
+        {
+          "name": "wasm_77d9faebf7af9e421806970ce10a58e9d83116d7",
+          "filePath": "server/edge-chunks/wasm_77d9faebf7af9e421806970ce10a58e9d83116d7.wasm"
+        }
+      ],
+      "assets": [
+        {
+          "name": "Geist-Regular.4548d4b15b6b765e.ttf",
+          "filePath": "server/edge-chunks/asset_Geist-Regular.4548d4b15b6b765e.ttf"
+        }
+      ],
+      "env": {
+        "__NEXT_BUILD_ID": "CSCQCdhXdv6K-5g3bj7rS",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "pASm2gnjvFLKnB8h/53Mm00B8ixCBVmBFiZfysml2O8=",
+        "__NEXT_PREVIEW_MODE_ID": "f55d04b8f49760380fbc0b37815071e3",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "7680ead784b0878e2243686973f055e4f1e526cd984b0076432e48481af06271",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "f3ca527897185cc82265c76f240e893ea33857831ff2faf00c9f5899a1f93a5d"
+      }
+    },
+    "/opengraph-image/route": {
+      "files": [
+        "server/middleware-build-manifest.js",
+        "server/middleware-react-loadable-manifest.js",
+        "server/next-font-manifest.js",
+        "server/interception-route-rewrite-manifest.js",
+        "required-server-files.js",
+        "server/edge-runtime-webpack.js",
+        "server/edge-chunks/774.js",
+        "server/app/opengraph-image/route.js"
+      ],
+      "entrypoint": "server/app/opengraph-image/route.js",
+      "name": "app/opengraph-image/route",
+      "page": "/opengraph-image/route",
+      "matchers": [
+        {
+          "regexp": "^/opengraph\\-image$",
+          "originalSource": "/opengraph-image"
+        }
+      ],
+      "wasm": [
+        {
+          "name": "wasm_a5d4d0ae9bf0a18b666f06b1864089d3fe4057cc",
+          "filePath": "server/edge-chunks/wasm_a5d4d0ae9bf0a18b666f06b1864089d3fe4057cc.wasm"
+        },
+        {
+          "name": "wasm_77d9faebf7af9e421806970ce10a58e9d83116d7",
+          "filePath": "server/edge-chunks/wasm_77d9faebf7af9e421806970ce10a58e9d83116d7.wasm"
+        }
+      ],
+      "assets": [
+        {
+          "name": "Geist-Regular.4548d4b15b6b765e.ttf",
+          "filePath": "server/edge-chunks/asset_Geist-Regular.4548d4b15b6b765e.ttf"
+        }
+      ],
+      "env": {
+        "__NEXT_BUILD_ID": "CSCQCdhXdv6K-5g3bj7rS",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "pASm2gnjvFLKnB8h/53Mm00B8ixCBVmBFiZfysml2O8=",
+        "__NEXT_PREVIEW_MODE_ID": "f55d04b8f49760380fbc0b37815071e3",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "7680ead784b0878e2243686973f055e4f1e526cd984b0076432e48481af06271",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "f3ca527897185cc82265c76f240e893ea33857831ff2faf00c9f5899a1f93a5d"
+      }
+    },
+    "/tests/[slug]/opengraph-image/route": {
+      "files": [
+        "server/middleware-build-manifest.js",
+        "server/middleware-react-loadable-manifest.js",
+        "server/next-font-manifest.js",
+        "server/interception-route-rewrite-manifest.js",
+        "required-server-files.js",
+        "server/edge-runtime-webpack.js",
+        "server/edge-chunks/774.js",
+        "server/app/tests/[slug]/opengraph-image/route.js"
+      ],
+      "entrypoint": "server/app/tests/[slug]/opengraph-image/route.js",
+      "name": "app/tests/[slug]/opengraph-image/route",
+      "page": "/tests/[slug]/opengraph-image/route",
+      "matchers": [
+        {
+          "regexp": "^/tests/(?<slug>[^/]+?)/opengraph\\-image$",
+          "originalSource": "/tests/[slug]/opengraph-image"
+        }
+      ],
+      "wasm": [
+        {
+          "name": "wasm_a5d4d0ae9bf0a18b666f06b1864089d3fe4057cc",
+          "filePath": "server/edge-chunks/wasm_a5d4d0ae9bf0a18b666f06b1864089d3fe4057cc.wasm"
+        },
+        {
+          "name": "wasm_77d9faebf7af9e421806970ce10a58e9d83116d7",
+          "filePath": "server/edge-chunks/wasm_77d9faebf7af9e421806970ce10a58e9d83116d7.wasm"
+        }
+      ],
+      "assets": [
+        {
+          "name": "Geist-Regular.4548d4b15b6b765e.ttf",
+          "filePath": "server/edge-chunks/asset_Geist-Regular.4548d4b15b6b765e.ttf"
+        }
+      ],
+      "env": {
+        "__NEXT_BUILD_ID": "CSCQCdhXdv6K-5g3bj7rS",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "pASm2gnjvFLKnB8h/53Mm00B8ixCBVmBFiZfysml2O8=",
+        "__NEXT_PREVIEW_MODE_ID": "f55d04b8f49760380fbc0b37815071e3",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "7680ead784b0878e2243686973f055e4f1e526cd984b0076432e48481af06271",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "f3ca527897185cc82265c76f240e893ea33857831ff2faf00c9f5899a1f93a5d"
+      }
+    }
+  },
+  "sortedMiddleware": []
+}

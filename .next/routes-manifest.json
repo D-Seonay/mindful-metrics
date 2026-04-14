@@ -1,0 +1,158 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "onMatchHeaders": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/tests/[slug]",
+      "regex": "^/tests/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/tests/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/tests/[slug]/opengraph-image",
+      "regex": "^/tests/([^/]+?)/opengraph\\-image(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/tests/(?<nxtPslug>[^/]+?)/opengraph\\-image(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/aim-trainer",
+      "regex": "^/aim\\-trainer(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aim\\-trainer(?:/)?$"
+    },
+    {
+      "page": "/apple-icon",
+      "regex": "^/apple\\-icon(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/apple\\-icon(?:/)?$"
+    },
+    {
+      "page": "/circle-memory",
+      "regex": "^/circle\\-memory(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/circle\\-memory(?:/)?$"
+    },
+    {
+      "page": "/color-memory",
+      "regex": "^/color\\-memory(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/color\\-memory(?:/)?$"
+    },
+    {
+      "page": "/color-vision",
+      "regex": "^/color\\-vision(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/color\\-vision(?:/)?$"
+    },
+    {
+      "page": "/icon",
+      "regex": "^/icon(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/icon(?:/)?$"
+    },
+    {
+      "page": "/manifest.webmanifest",
+      "regex": "^/manifest\\.webmanifest(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/manifest\\.webmanifest(?:/)?$"
+    },
+    {
+      "page": "/opengraph-image",
+      "regex": "^/opengraph\\-image(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/opengraph\\-image(?:/)?$"
+    },
+    {
+      "page": "/peripheral-vision",
+      "regex": "^/peripheral\\-vision(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/peripheral\\-vision(?:/)?$"
+    },
+    {
+      "page": "/profile",
+      "regex": "^/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/profile(?:/)?$"
+    },
+    {
+      "page": "/reflexes",
+      "regex": "^/reflexes(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/reflexes(?:/)?$"
+    },
+    {
+      "page": "/time-perception",
+      "regex": "^/time\\-perception(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/time\\-perception(?:/)?$"
+    },
+    {
+      "page": "/typing",
+      "regex": "^/typing(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/typing(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

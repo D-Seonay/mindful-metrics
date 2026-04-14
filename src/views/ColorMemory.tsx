@@ -48,6 +48,7 @@ const ColorMemory: React.FC = () => {
   const { playSound, playNote } = useSoundSystem();
 
   const gridSize = score >= 10 ? 3 : 2;
+  const numColors = score >= 10 ? 9 : 4;
 
   const [history, setHistory] = useLocalStorage<PerformanceHistory>("performance-history", {
     reflex: [],

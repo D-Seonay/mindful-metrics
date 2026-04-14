@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/time-perception/layout,_N_T_/time-perception/page,_N_T_/time-perception"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/time-perception/__PAGE__",
+    "/time-perception",
+    "/_index",
+    "/_head"
+  ]
+}

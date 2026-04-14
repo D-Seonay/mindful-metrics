@@ -1,0 +1,23 @@
+{
+  "components/Layout.tsx -> ./AudioSettings": {
+    "id": 2708,
+    "files": [
+      "static/chunks/415-8498ec8661db453e.js",
+      "static/chunks/708.80d2ed8f0cd706c2.js"
+    ]
+  },
+  "components/Layout.tsx -> ./StreakCounter": {
+    "id": 3447,
+    "files": [
+      "static/chunks/107-86de0f340b711bc8.js",
+      "static/chunks/447.f850382fd979dcd1.js"
+    ]
+  },
+  "components/Layout.tsx -> ./ThemeToggle": {
+    "id": 5558,
+    "files": [
+      "static/chunks/937-4dc2c8e8eb33bda9.js",
+      "static/chunks/915.3712567457519e1f.js"
+    ]
+  }
+}

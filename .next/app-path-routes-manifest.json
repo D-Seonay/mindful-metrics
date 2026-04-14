@@ -1,0 +1,20 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/_global-error/page": "/_global-error",
+  "/manifest.webmanifest/route": "/manifest.webmanifest",
+  "/aim-trainer/page": "/aim-trainer",
+  "/circle-memory/page": "/circle-memory",
+  "/color-memory/page": "/color-memory",
+  "/color-vision/page": "/color-vision",
+  "/page": "/",
+  "/peripheral-vision/page": "/peripheral-vision",
+  "/profile/page": "/profile",
+  "/reflexes/page": "/reflexes",
+  "/tests/[slug]/page": "/tests/[slug]",
+  "/time-perception/page": "/time-perception",
+  "/typing/page": "/typing",
+  "/apple-icon/route": "/apple-icon",
+  "/icon/route": "/icon",
+  "/opengraph-image/route": "/opengraph-image",
+  "/tests/[slug]/opengraph-image/route": "/tests/[slug]/opengraph-image"
+}

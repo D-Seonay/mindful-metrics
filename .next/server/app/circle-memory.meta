@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/circle-memory/layout,_N_T_/circle-memory/page,_N_T_/circle-memory"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/circle-memory/__PAGE__",
+    "/circle-memory",
+    "/_index",
+    "/_head"
+  ]
+}

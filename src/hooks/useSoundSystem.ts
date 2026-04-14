@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { audioEngine } from '@/lib/audioEngine';
 import { useLocalStorage } from './useLocalStorage';
 
@@ -21,6 +21,11 @@ export function useSoundSystem() {
     audioEngine.play(type);
   }, []);
 
+  const playNote = useCallback((frequency: number) => {
+    audioEngine.resume();
+    audioEngine.playNote(frequency);
+  }, []);
+
   const handleVolumeChange = (newVolume: number[]) => {
     const val = newVolume[0];
     setVolume(val);
@@ -33,17 +38,6 @@ export function useSoundSystem() {
   return {
     playSound,
     playNote,
-    volume,
-    setVolume: handleVolumeChange,
-    isMuted,
-    toggleMute,
-  };
-}
-
-  };
-
-  return {
-    playSound,
     volume,
     setVolume: handleVolumeChange,
     isMuted,

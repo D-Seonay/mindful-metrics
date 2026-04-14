@@ -1,0 +1,20 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/_global-error/page": "app/_global-error/page.js",
+  "/manifest.webmanifest/route": "app/manifest.webmanifest/route.js",
+  "/aim-trainer/page": "app/aim-trainer/page.js",
+  "/circle-memory/page": "app/circle-memory/page.js",
+  "/color-memory/page": "app/color-memory/page.js",
+  "/color-vision/page": "app/color-vision/page.js",
+  "/page": "app/page.js",
+  "/peripheral-vision/page": "app/peripheral-vision/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/reflexes/page": "app/reflexes/page.js",
+  "/tests/[slug]/page": "app/tests/[slug]/page.js",
+  "/time-perception/page": "app/time-perception/page.js",
+  "/typing/page": "app/typing/page.js",
+  "/apple-icon/route": "app/apple-icon/route.js",
+  "/icon/route": "app/icon/route.js",
+  "/opengraph-image/route": "app/opengraph-image/route.js",
+  "/tests/[slug]/opengraph-image/route": "app/tests/[slug]/opengraph-image/route.js"
+}
