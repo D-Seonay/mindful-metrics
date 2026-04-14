@@ -8,6 +8,7 @@ import { Zap, Keyboard, Hourglass, MousePointerClick, User, Menu, Eye, Target, B
 
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Dynamic imports for client-only components to prevent hydration mismatches
 const StreakCounter = dynamic(() => import('./StreakCounter').then(mod => mod.StreakCounter), { ssr: false });
@@ -96,25 +97,11 @@ export function Layout({ children }: LayoutProps) {
                           <span className="hidden lg:inline">{item.label}</span>
                         </Link>
                       );
-                    })}
-                  </div>
-                </div>
-              ))}
-              <div className="h-6 w-px bg-border/50 mx-2" />
-              <Link
-                href={profileItem.to}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                  pathname === profileItem.to
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                )}
-              >
-                <profileItem.icon className="h-4 w-4" />
-                <span>{profileItem.label}</span>
-              </Link>
-            </div>
-
+                      })}
+                      </div>
+                      </div>
+                      ))}
+                      </div>
             {/* Mobile Navigation */}
             <div className="md:hidden">
               <Sheet>
@@ -175,6 +162,12 @@ export function Layout({ children }: LayoutProps) {
               <StreakCounter />
               <AudioSettings />
               <ThemeToggle />
+              <Link href="/profile">
+                <Avatar className="h-8 w-8 border border-zinc-800 hover:border-zinc-400 transition-colors cursor-pointer">
+                  <AvatarImage src="https://github.com/shadcn.png" alt="Profile" />
+                  <AvatarFallback>MM</AvatarFallback>
+                </Avatar>
+              </Link>
             </div>
           </nav>
         </header>
