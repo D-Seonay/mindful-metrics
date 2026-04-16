@@ -23,7 +23,7 @@ export function StreakCounter() {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-orange-100/10 text-orange-500 border border-orange-500/20 mr-2 cursor-help select-none">
+          <div className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full bg-orange-100/10 text-orange-500 border border-orange-500/20 mr-1 sm:mr-2 cursor-help select-none">
             <Flame className={cn("h-4 w-4 fill-orange-500", streak > 0 && "animate-pulse")} />
             <span className="text-sm font-bold font-mono">{streak}</span>
           </div>

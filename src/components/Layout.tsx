@@ -161,12 +161,12 @@ export function Layout({ children }: LayoutProps) {
               </Sheet>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <StreakCounter />
               <AudioSettings />
               <ThemeToggle />
               <Link href="/profile">
-                <Avatar className="h-8 w-8 border border-zinc-800 hover:border-zinc-400 transition-colors cursor-pointer">
+                <Avatar className="h-7 w-7 sm:h-8 sm:w-8 border border-zinc-800 hover:border-zinc-400 transition-colors cursor-pointer">
                   <AvatarImage src="https://github.com/shadcn.png" alt="Profile" />
                   <AvatarFallback>MM</AvatarFallback>
                 </Avatar>

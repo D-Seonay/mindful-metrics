@@ -21,7 +21,7 @@ export function AudioSettings() {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" className="h-9 w-9" disabled>
+      <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" disabled>
         <Volume2 className="h-4 w-4" />
       </Button>
     );
@@ -30,7 +30,7 @@ export function AudioSettings() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9">
+        <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
           {isMuted || volume === 0 ? (
             <VolumeX className="h-4 w-4" />
           ) : (
