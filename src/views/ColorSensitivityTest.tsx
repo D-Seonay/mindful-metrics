@@ -251,7 +251,7 @@ const ColorSensitivityTest: React.FC = () => {
         </div>
 
         {/* HUD Stats */}
-        <div className="flex justify-start gap-4 md:gap-12 mb-4 md:mb-8">
+        <div className="flex justify-between sm:justify-start gap-4 sm:gap-12 mb-4 md:mb-8">
           <div className="flex flex-col">
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Level</span>
             <span className="text-xl md:text-2xl font-bold tabular-nums">
@@ -300,19 +300,19 @@ const ColorSensitivityTest: React.FC = () => {
 
           {isGameOver && (
             <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/95 backdrop-blur-md rounded-2xl animate-in fade-in duration-500 overflow-y-auto">
-              <div className="text-center w-full max-w-3xl p-4 md:p-12">
+              <div className="text-center w-full max-w-3xl p-6 sm:p-12">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 items-center mb-8 md:mb-12">
                   <div className="space-y-1">
                     <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Level Reached</div>
-                    <div className="text-4xl md:text-6xl font-bold text-primary">{gameResult}</div>
+                    <div className="text-4xl sm:text-6xl font-bold text-primary">{gameResult}</div>
                   </div>
                   <div className="space-y-1">
                     <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Difficulty</div>
-                    <div className="text-2xl md:text-4xl font-bold uppercase">{difficulty}</div>
+                    <div className="text-2xl sm:text-4xl font-bold uppercase">{difficulty}</div>
                   </div>
                   <div className="space-y-1">
                     <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Personal Best</div>
-                    <div className="text-2xl md:text-4xl font-bold tabular-nums">{bestScore}</div>
+                    <div className="text-2xl sm:text-4xl font-bold tabular-nums">{bestScore}</div>
                   </div>
                 </div>
                 <Button onClick={startGame} size="lg" className="rounded-full px-8 uppercase tracking-widest">

@@ -231,7 +231,7 @@ const ColorMemory: React.FC = () => {
       </div>
 
       {/* HUD Stats */}
-      <div className="flex justify-start gap-8 md:gap-12 mb-8 items-end">
+      <div className="flex justify-between sm:justify-start gap-4 sm:gap-12 mb-8 items-end">
         <div className="flex flex-col">
           <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Level</span>
           <span className="text-xl md:text-2xl font-bold tabular-nums text-primary">
@@ -292,18 +292,18 @@ const ColorMemory: React.FC = () => {
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="absolute inset-0 z-20 flex items-center justify-center bg-background/95 backdrop-blur-md rounded-2xl p-8"
+              className="absolute inset-0 z-20 flex items-center justify-center bg-background/95 backdrop-blur-md rounded-2xl p-6 sm:p-12"
             >
               <div className="text-center w-full max-w-2xl">
                 <Trophy className="h-16 w-16 text-primary mx-auto mb-6" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mb-12">
                   <div className="space-y-1">
                     <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Level Reached</div>
-                    <div className="text-5xl md:text-7xl font-bold text-primary tabular-nums">{score}</div>
+                    <div className="text-4xl sm:text-7xl font-bold text-primary tabular-nums">{score}</div>
                   </div>
                   <div className="space-y-1">
                     <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Personal Best</div>
-                    <div className="text-3xl md:text-5xl font-bold tabular-nums text-muted-foreground">{highScore}</div>
+                    <div className="text-2xl sm:text-5xl font-bold tabular-nums text-muted-foreground">{highScore}</div>
                   </div>
                 </div>
                 <Button onClick={startGame} size="lg" className="rounded-full px-8 uppercase tracking-widest">

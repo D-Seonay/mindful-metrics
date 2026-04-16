@@ -193,13 +193,13 @@ export default function PeripheralVision() {
       <div className="container max-w-5xl mx-auto px-4 py-8 flex flex-col min-h-[calc(100vh-8rem)]">
         
         {/* Header & HUD */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold mb-1 font-mono tracking-tight uppercase">Peripheral Vision</h1>
             <p className="text-sm text-muted-foreground font-mono tracking-widest uppercase">React to edge targets while holding center</p>
           </div>
 
-          <div className="flex items-center gap-8 font-mono">
+          <div className="flex justify-between sm:justify-start items-center gap-4 sm:gap-12 font-mono w-full sm:w-auto">
             <div className="flex flex-col">
               <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Target</span>
               <span className="text-2xl font-bold tabular-nums">
@@ -236,7 +236,7 @@ export default function PeripheralVision() {
         <div 
           ref={containerRef}
           className={cn(
-            "flex-1 relative rounded-2xl bg-background border border-border/50 overflow-hidden cursor-crosshair transition-colors duration-500",
+            "flex-1 relative rounded-2xl bg-background border border-border/50 overflow-hidden cursor-crosshair transition-colors duration-500 max-w-md mx-auto aspect-square w-full",
             gameState === 'finished' && "bg-secondary/10 border-border/50"
           )}
           onContextMenu={handlePreventDefault}
@@ -245,15 +245,15 @@ export default function PeripheralVision() {
           {gameState === 'finished' ? (
             /* Results Screen */
             <div className="absolute inset-0 flex items-center justify-center animate-in fade-in zoom-in duration-500">
-              <div className="text-center p-12">
-                <div className="grid grid-cols-2 gap-12 mb-12">
+              <div className="text-center p-6 sm:p-12">
+                <div className="grid grid-cols-2 gap-8 sm:gap-12 mb-12">
                   <div className="space-y-2">
                     <div className="text-xs text-muted-foreground uppercase tracking-widest font-mono">Average Reaction</div>
-                    <div className="text-6xl font-bold text-primary font-mono tabular-nums">{stats.averageTime}ms</div>
+                    <div className="text-4xl sm:text-6xl font-bold text-primary font-mono tabular-nums">{stats.averageTime}ms</div>
                   </div>
                   <div className="space-y-2">
                     <div className="text-xs text-muted-foreground uppercase tracking-widest font-mono">Accuracy</div>
-                    <div className="text-6xl font-bold font-mono tabular-nums">{stats.accuracy}%</div>
+                    <div className="text-4xl sm:text-6xl font-bold font-mono tabular-nums">{stats.accuracy}%</div>
                   </div>
                 </div>
                 <Button onClick={resetGame} size="lg" className="rounded-full px-8 font-mono uppercase tracking-widest">
