@@ -37,11 +37,11 @@ export function HeroSection() {
           <span className="text-sm font-medium text-slate-300">Cognitive Performance Tracker</span>
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 animate-fade-in [animation-delay:200ms]">
+        <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white mb-6 animate-fade-in [animation-delay:200ms]">
           Sharpen Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Mental Agility</span>
         </h1>
 
-        <p className="max-w-2xl mx-auto text-lg md:text-xl text-slate-400 mb-10 animate-fade-in [animation-delay:400ms]">
+        <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-400 mb-10 animate-fade-in [animation-delay:400ms]">
           Measure and improve your reaction time, typing speed, and precision with our suite of professional cognitive tools.
           Track your progress and enhance your focus.
         </p>

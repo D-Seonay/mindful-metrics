@@ -27,7 +27,7 @@ export function StatsOverview() {
 
   if (!mounted) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <ActivityHeatmap />
         {[...Array(7)].map((_, i) => (
           <Card key={i} className="animate-pulse bg-secondary/20 h-32" />
@@ -133,7 +133,7 @@ export function StatsOverview() {
     const pvStats = peripheralVisionStats();
   
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {/* Activity Heatmap */}
         <ActivityHeatmap />
   

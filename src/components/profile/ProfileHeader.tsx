@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 export function ProfileHeader() {
   return (
     <Card className="mb-6">
-      <CardContent className="pt-6">
-        <div className="flex flex-col md:flex-row items-center gap-6">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6">
           <Avatar className="h-24 w-24">
             <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
             <AvatarFallback>CN</AvatarFallback>
