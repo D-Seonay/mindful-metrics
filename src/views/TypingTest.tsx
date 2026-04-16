@@ -257,7 +257,7 @@ export default function TypingTest() {
       <div className="container max-w-5xl mx-auto px-4 py-12">
         {/* Compact Settings Bar */}
         <div className={cn(
-          "flex flex-wrap items-center justify-between gap-4 mb-12 p-2 rounded-xl bg-secondary/20 border border-border/50 transition-opacity duration-300",
+          "flex flex-wrap items-center justify-between gap-2 sm:gap-4 mb-12 p-2 rounded-xl bg-secondary/20 border border-border/50 transition-opacity duration-300",
           gameState === 'typing' ? "opacity-0 pointer-events-none" : "opacity-100"
         )}>
           <div className="flex items-center gap-1">
@@ -323,7 +323,7 @@ export default function TypingTest() {
         </div>
 
         {/* HUD Stats */}
-        <div className="flex justify-start gap-12 mb-8 font-mono">
+        <div className="flex justify-between sm:justify-start gap-4 sm:gap-12 mb-8 font-mono">
           <div className="flex flex-col">
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">{t.time}</span>
             <span className="text-2xl font-bold tabular-nums text-primary">
@@ -358,7 +358,7 @@ export default function TypingTest() {
         <div className="relative">
           {gameState === 'finished' ? (
             /* Results screen */
-            <div className="p-12 rounded-2xl bg-secondary/10 border border-border/50 text-center result-display">
+            <div className="p-6 sm:p-12 rounded-2xl bg-secondary/10 border border-border/50 text-center result-display">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
                 <div className="space-y-1">
                   <div className="text-[10px] text-muted-foreground uppercase tracking-widest">{t.resultsTitle}</div>
@@ -384,12 +384,12 @@ export default function TypingTest() {
             /* Typing area */
             <div
               className={cn(
-                "relative p-8 rounded-2xl transition-all duration-500 cursor-text min-h-[200px]",
+                "relative p-4 sm:p-8 rounded-2xl transition-all duration-500 cursor-text min-h-[200px]",
                 !isFocused && "blur-sm grayscale-[0.5] opacity-50"
               )}
               onClick={() => inputRef.current?.focus()}
             >
-              <div className="text-2xl md:text-3xl leading-relaxed font-mono tracking-tight text-left select-none">
+              <div className="text-xl sm:text-2xl md:text-3xl leading-relaxed font-mono tracking-tight text-left select-none">
                 {text.split('').map((char, index) => {
                   let colorClass = 'text-muted-foreground/30';
                   
