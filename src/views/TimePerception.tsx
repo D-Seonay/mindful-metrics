@@ -84,7 +84,7 @@ export default function TimePerceptionTest() {
       <div className="container max-w-5xl mx-auto px-4 py-12">
         {/* Compact Settings Bar */}
         <div className={cn(
-          "flex items-center justify-center gap-4 mb-12 p-2 rounded-xl bg-secondary/20 border border-border/50 transition-opacity duration-300",
+          "flex flex-wrap items-center justify-center gap-4 mb-12 p-2 rounded-xl bg-secondary/20 border border-border/50 transition-opacity duration-300",
           gameState === 'running' ? "opacity-0 pointer-events-none" : "opacity-100"
         )}>
           <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest px-2 border-r border-border/50">Target</span>
@@ -104,7 +104,7 @@ export default function TimePerceptionTest() {
         </div>
 
         {/* HUD Stats */}
-        <div className="flex justify-start gap-12 mb-8 font-mono">
+        <div className="flex flex-wrap sm:flex-nowrap justify-between sm:justify-start gap-4 sm:gap-12 mb-8 font-mono">
           <div className="flex flex-col">
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Target</span>
             <span className="text-2xl font-bold tabular-nums">
@@ -123,7 +123,7 @@ export default function TimePerceptionTest() {
               {history.timePerception?.[0] ? `${Math.abs(history.timePerception[0].difference).toFixed(3)}s` : '--'}
             </span>
           </div>
-          <div className="ml-auto flex items-end">
+          <div className="w-full sm:w-auto sm:ml-auto flex items-end justify-end">
             <Button
               variant="ghost"
               size="sm"
@@ -143,7 +143,7 @@ export default function TimePerceptionTest() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center max-w-3xl mx-auto">
                 <div className="space-y-1">
                   <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Captured Time</div>
-                  <div className="text-6xl font-bold text-primary font-mono tabular-nums">{result.toFixed(3)}s</div>
+                  <div className="text-5xl sm:text-6xl font-bold text-primary font-mono tabular-nums">{result.toFixed(3)}s</div>
                 </div>
                 <div className="space-y-1">
                   <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Difference</div>
@@ -169,7 +169,7 @@ export default function TimePerceptionTest() {
             /* Game Area */
             <div
               className={cn(
-                "relative h-[400px] lg:h-[500px] rounded-2xl border border-border/50 transition-all duration-500 flex flex-col items-center justify-center overflow-hidden",
+                "relative h-[350px] sm:h-[400px] lg:h-[500px] rounded-2xl border border-border/50 transition-all duration-500 flex flex-col items-center justify-center overflow-hidden",
                 gameState === 'idle' && "bg-secondary/10",
                 gameState === 'running' && "bg-background border-primary/30 shadow-inner"
               )}
