@@ -163,7 +163,7 @@ export default function AimTrainer() {
       <div className="container max-w-5xl mx-auto px-4 py-12 flex flex-col h-[calc(100vh-4rem)]">
         {/* Compact Settings Bar */}
         <div className={cn(
-          "flex flex-wrap items-center justify-between gap-4 mb-12 p-2 rounded-xl bg-secondary/20 border border-border/50 transition-opacity duration-300",
+          "flex flex-wrap items-center justify-center sm:justify-between gap-2 sm:gap-4 mb-12 p-2 rounded-xl bg-secondary/20 border border-border/50 transition-opacity duration-300",
           gameState === 'PLAYING' ? "opacity-0 pointer-events-none" : "opacity-100"
         )}>
           <div className="flex items-center gap-4">
@@ -212,10 +212,10 @@ export default function AimTrainer() {
         </div>
 
         {/* HUD Stats */}
-        <div className="flex justify-start gap-12 mb-8 font-mono">
+        <div className="flex justify-between sm:justify-start gap-4 sm:gap-12 mb-8 font-mono">
           <div className="flex flex-col">
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Time</span>
-            <span className="text-2xl font-bold tabular-nums text-primary">
+            <span className="text-xl sm:text-2xl font-bold tabular-nums text-primary">
               {config.mode === 'TIME_ATTACK' 
                 ? formatTime(Math.max(0, config.duration - displayElapsedTime))
                 : formatTime(displayElapsedTime)
@@ -224,13 +224,13 @@ export default function AimTrainer() {
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Score</span>
-            <span className="text-2xl font-bold tabular-nums">
+            <span className="text-xl sm:text-2xl font-bold tabular-nums">
               {stats.score}
             </span>
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Accuracy</span>
-            <span className="text-2xl font-bold tabular-nums">
+            <span className="text-xl sm:text-2xl font-bold tabular-nums">
               {currentAccuracy}%
             </span>
           </div>
@@ -258,7 +258,7 @@ export default function AimTrainer() {
 
           {gameState === 'FINISHED' && (
             <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/95 backdrop-blur-md rounded-2xl animate-in fade-in duration-500">
-              <div className="text-center w-full max-w-3xl p-12">
+              <div className="text-center w-full max-w-3xl p-6 sm:p-12">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center mb-12">
                   <div className="space-y-1">
                     <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Score</div>
