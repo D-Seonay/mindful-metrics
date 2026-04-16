@@ -137,22 +137,22 @@ export default function ReflexTest() {
     
       <div className="container max-w-5xl mx-auto px-4 py-12">
         {/* HUD Stats */}
-        <div className="flex justify-start gap-12 mb-8 font-mono">
+        <div className="flex justify-between sm:justify-start gap-4 sm:gap-12 mb-8 font-mono">
           <div className="flex flex-col">
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Attempt</span>
-            <span className="text-2xl font-bold tabular-nums">
+            <span className="text-xl sm:text-2xl font-bold tabular-nums">
               {testCount}/{TEST_COUNT}
             </span>
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Reaction</span>
-            <span className="text-2xl font-bold tabular-nums text-primary">
+            <span className="text-xl sm:text-2xl font-bold tabular-nums text-primary">
               {reactionTime > 0 ? `${reactionTime}ms` : '--'}
             </span>
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Session Avg</span>
-            <span className="text-2xl font-bold tabular-nums">
+            <span className="text-xl sm:text-2xl font-bold tabular-nums">
               {currentAverage > 0 ? `${currentAverage}ms` : '--'}
             </span>
           </div>
@@ -172,11 +172,11 @@ export default function ReflexTest() {
         <div className="relative">
           {gameState === 'finished' ? (
             /* Results screen */
-            <div className="p-12 rounded-2xl bg-secondary/10 border border-border/50 text-center animate-in fade-in zoom-in duration-500">
+            <div className="p-6 sm:p-12 rounded-2xl bg-secondary/10 border border-border/50 text-center animate-in fade-in zoom-in duration-500">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center max-w-2xl mx-auto">
                 <div className="space-y-1">
                   <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Final Average</div>
-                  <div className="text-6xl font-bold text-primary font-mono tabular-nums">{averageResult}ms</div>
+                  <div className="text-5xl sm:text-6xl font-bold text-primary font-mono tabular-nums">{averageResult}ms</div>
                 </div>
                 <div className="space-y-1">
                   <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Best Reaction</div>
@@ -197,7 +197,7 @@ export default function ReflexTest() {
             <div
               onPointerDown={(e) => { e.preventDefault(); handleClick(); }}
               className={cn(
-                "relative h-[400px] lg:h-[500px] rounded-2xl border border-border/50 transition-all duration-500 flex flex-col items-center justify-center cursor-pointer overflow-hidden",
+                "relative h-[350px] sm:h-[400px] lg:h-[500px] rounded-2xl border border-border/50 transition-all duration-500 flex flex-col items-center justify-center cursor-pointer overflow-hidden",
                 gameState === 'idle' && "bg-secondary/10",
                 gameState === 'waiting' && "bg-background shadow-inner",
                 gameState === 'ready' && "bg-emerald-500/20 border-emerald-500/50",
